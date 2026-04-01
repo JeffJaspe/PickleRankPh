@@ -1,0 +1,18 @@
+create extension if not exists "uuid-ossp";
+create table regions (id uuid primary key default uuid_generate_v4(), name text not null, code text not null unique, created_at timestamptz default now());
+create table provinces (id uuid primary key default uuid_generate_v4(), region_id uuid not null references regions(id) on delete cascade, name text not null, created_at timestamptz default now());
+create table cities (id uuid primary key default uuid_generate_v4(), province_id uuid not null references provinces(id) on delete cascade, name text not null, created_at timestamptz default now());
+create table users (id uuid primary key references auth.users(id) on delete cascade, email text not null unique, role text not null check (role in ('admin','superadmin')) default 'admin', created_at timestamptz default now());
+create table players (id uuid primary key default uuid_generate_v4(), full_name text not null, nickname text, avatar_url text, city_id uuid references cities(id), province_id uuid references provinces(id), region_id uuid references regions(id), rating_points integer not null default 0, rank_national integer, rank_regional integer, rank_provincial integer, rank_local integer, created_at timestamptz default now(), updated_at timestamptz default now());
+create table tournaments (id uuid primary key default uuid_generate_v4(), name text not null, location text, city_id uuid references cities(id), province_id uuid references provinces(id), region_id uuid references regions(id), scope text not null check (scope in ('local','provincial','regional','national')), start_date date not null, end_date date not null, status text not null check (status in ('upcoming','ongoing','completed')) default 'upcoming', created_at timestamptz default now());
+create table matches (id uuid primary key default uuid_generate_v4(), tournament_id uuid references tournaments(id) on delete cascade, player1_id uuid not null references players(id), player2_id uuid not null references players(id), player1_score integer not null default 0, player2_score integer not null default 0, winner_id uuid references players(id), points_awarded integer not null default 0, played_at timestamptz default now());
+alter table players enable row level security;
+alter table tournaments enable row level security;
+alter table matches enable row level security;
+alter table users enable row level security;
+create policy "Public read players" on players for select using (true);
+create policy "Public read tournaments" on tournaments for select using (true);
+create policy "Public read matches" on matches for select using (true);
+create policy "Public read regions" on regions for select using (true);
+create policy "Public read provinces" on provinces for select using (true);
+create policy "Public read cities" on cities for select using (true);
