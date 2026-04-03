@@ -7,9 +7,20 @@
       <span class="text-base sm:text-xl font-black tracking-widest text-white/20 uppercase pb-1">PH</span>
     </div>
     <div class="bar-enter w-24 h-0.5 bg-[#ff4655]"></div>
-    <p class="text-enter text-xs font-bold tracking-[0.4em] uppercase text-white/30">Coming Soon</p>
+    <div class="text-enter flex flex-col items-center gap-2">
+      <p class="text-xs font-bold tracking-[0.4em] uppercase text-white/30">Coming Soon</p>
+      <p v-if="label" class="text-sm font-bold tracking-widest uppercase text-[#ff4655]/70">{{ label }}</p>
+    </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const label = computed(() => route.meta.label as string | undefined)
+</script>
 
 <style scoped>
 .logo-enter {
