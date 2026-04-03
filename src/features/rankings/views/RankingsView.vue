@@ -50,7 +50,7 @@
           <div class="flex flex-col gap-1">
             <label class="text-[10px] uppercase tracking-widest text-brand-yellow/40 font-bold">Province</label>
             <select v-model="filter.province_code" @change="onProvinceChange"
-              :disabled="!filter.region_code || filter.scope === 'national' || filter.scope === 'regional'"
+              :disabled="!filter.region_code"
               class="bg-brand-dark border border-brand-light text-brand-yellow text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-brand-red transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
               <option value="">All Provinces</option>
               <option v-for="p in filteredProvinces" :key="p.code" :value="p.code">{{ p.name }}</option>
@@ -61,7 +61,7 @@
           <div class="flex flex-col gap-1">
             <label class="text-[10px] uppercase tracking-widest text-brand-yellow/40 font-bold">City / Town</label>
             <select v-model="filter.city_code"
-              :disabled="!filter.province_code || filter.scope !== 'local'"
+              :disabled="!filter.province_code"
               class="bg-brand-dark border border-brand-light text-brand-yellow text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-brand-red transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
               <option value="">All Cities</option>
               <option v-for="c in filteredCities" :key="c.code" :value="c.code">{{ c.name }}</option>
