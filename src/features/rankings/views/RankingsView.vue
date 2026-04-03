@@ -30,8 +30,6 @@
               class="bg-brand-dark border border-brand-light text-brand-yellow text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-brand-red transition-colors cursor-pointer">
               <option value="national">National</option>
               <option value="regional">Regional</option>
-              <option value="provincial">Provincial</option>
-              <option value="local">Local</option>
             </select>
           </div>
 
@@ -152,9 +150,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineComponent, h } from 'vue'
+import { ref, computed, onMounted, watch, defineComponent, h } from 'vue'
 import { supabase } from '@/lib/supabase'
-import { getRegions, getProvinces, getCities, regionCodeOf, provinceCodeOf } from '@/lib/psgc'
+import { getRegions, getProvinces, getCitiesByProvince, regionCodeOf } from '@/lib/psgc'
 import type { PsgcRegion, PsgcProvince, PsgcCity } from '@/lib/psgc'
 import type { Player, RankingScope } from '@/types'
 
@@ -235,11 +233,11 @@ const filteredProvinces = computed(() =>
     ? provinces.value.filter(p => regionCodeOf(p) === filter.value.region_code)
     : provinces.value
 )
-const filteredCities = computed(() =>
-  filter.value.province_code
-    ? cities.value.filter(c => provinceCodeOf(c) === filter.value.province_code)
-    : cities.value
-)
+
+watch(() => filter.value.province_code, async (code) => {
+  if (code) cities.value = await getCitiesByProvince(code)
+  else cities.value = []
+})
 
 // ── Ranked players ───────────────────────────────────────────────────────────
 const rankedPlayers = computed(() => {
@@ -272,17 +270,15 @@ function onProvinceChange() {
 // ── Data fetching ────────────────────────────────────────────────────────────
 async function fetchAll() {
   loading.value = true
-  const [{ data: pl, error: plErr }, rg, pr, ci] = await Promise.all([
+  const [{ data: pl, error: plErr }, rg, pr] = await Promise.all([
     supabase.from('players').select('*'),
     getRegions(),
     getProvinces(),
-    getCities(),
   ])
   if (plErr) console.error('players fetch error:', plErr)
   players.value = (pl ?? []) as Player[]
   regions.value = rg
   provinces.value = pr
-  cities.value = ci
   loading.value = false
 }
 

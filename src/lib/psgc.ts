@@ -9,14 +9,9 @@ export function regionCodeOf(province: PsgcProvince): string {
   return province.code.substring(0, 2).padEnd(10, '0')
 }
 
-/** Derives the parent province code from a city/municipality code (first 6 digits + 4 zeros) */
-export function provinceCodeOf(city: PsgcCity): string {
-  return city.code.substring(0, 6) + '0000'
-}
-
 let _regions: PsgcRegion[] | null = null
 let _provinces: PsgcProvince[] | null = null
-let _cities: PsgcCity[] | null = null
+const _citiesByProvince = new Map<string, PsgcCity[]>()
 
 export async function getRegions(): Promise<PsgcRegion[]> {
   if (!_regions) {
@@ -36,11 +31,11 @@ export async function getProvinces(): Promise<PsgcProvince[]> {
   return _provinces
 }
 
-export async function getCities(): Promise<PsgcCity[]> {
-  if (!_cities) {
-    const res = await fetch(`${BASE}/cities-municipalities`)
+export async function getCitiesByProvince(provinceCode: string): Promise<PsgcCity[]> {
+  if (!_citiesByProvince.has(provinceCode)) {
+    const res = await fetch(`${BASE}/provinces/${provinceCode}/cities-municipalities`)
     const data: PsgcCity[] = await res.json()
-    _cities = data.sort((a, b) => a.name.localeCompare(b.name))
+    _citiesByProvince.set(provinceCode, data.sort((a, b) => a.name.localeCompare(b.name)))
   }
-  return _cities
+  return _citiesByProvince.get(provinceCode)!
 }
