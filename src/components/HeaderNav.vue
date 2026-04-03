@@ -58,7 +58,7 @@
                       :class="{ 'dropdown-item--active': $route.path === child.to }"
                       @click="closeDropdown"
                     >
-                      <span class="w-1 h-1 rounded-full bg-[#ff4655] opacity-0 transition-opacity duration-150 group-hover:opacity-100"></span>
+                      <span class="w-1 h-1 rounded-full bg-[#ff4655]"></span>
                       {{ child.label }}
                     </RouterLink>
                   </li>
@@ -231,7 +231,7 @@ function toggleMobileAccordion(label: string) {
 }
 
 .dropdown-item {
-  @apply flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold tracking-wider uppercase text-white/50 hover:text-white hover:bg-white/5 transition-all duration-150 group;
+  @apply flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold tracking-wider uppercase text-white/50 hover:text-white hover:bg-white/5 transition-all duration-150;
 }
 
 .dropdown-item--active {
