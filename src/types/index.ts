@@ -3,10 +3,16 @@ export interface Region { code: string; name: string }
 export interface Province { code: string; name: string }
 export interface City { code: string; name: string; type: string }
 export interface Player {
-  id: string; full_name: string; nickname?: string; avatar_url?: string
-  city_code: string; province_code: string; region_code: string
-  rating_points: number; rank_local?: number; rank_provincial?: number
-  rank_regional?: number; rank_national?: number
+  id: string
+  name: string
+  city: string
+  province: string
+  region: string
+  points: number
+  dupr_rating?: number
+  city_code?: string
+  province_code?: string
+  region_code?: string
   created_at: string
 }
 export interface Tournament {

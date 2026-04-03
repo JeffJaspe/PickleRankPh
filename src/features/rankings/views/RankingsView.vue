@@ -127,18 +127,17 @@
               <span class="text-brand-yellow/50 font-bold text-sm self-center">{{ i + 4 }}</span>
               <div class="flex items-center gap-3 min-w-0">
                 <div class="w-8 h-8 rounded-full bg-brand-dark border border-brand-light flex items-center justify-center flex-shrink-0 text-xs font-bold text-brand-red uppercase">
-                  {{ initials(player.full_name) }}
+                  {{ initials(player.name) }}
                 </div>
                 <div class="min-w-0">
-                  <p class="text-brand-yellow font-bold text-sm truncate group-hover:text-white transition-colors">{{ player.full_name }}</p>
-                  <p v-if="player.nickname" class="text-brand-yellow/40 text-xs truncate">"{{ player.nickname }}"</p>
+                  <p class="text-brand-yellow font-bold text-sm truncate group-hover:text-white transition-colors">{{ player.name }}</p>
                 </div>
               </div>
               <span class="hidden sm:flex items-center text-brand-yellow/40 text-xs text-right justify-end">
                 {{ locationLabel(player) }}
               </span>
               <span class="flex items-center justify-end font-black text-brand-red text-sm">
-                {{ (player.rating_points ?? 0).toLocaleString() }}
+                {{ (player.points ?? 0).toLocaleString() }}
               </span>
             </div>
           </div>
@@ -177,16 +176,13 @@ const SpotlightCard = defineComponent({
         h('span', { class: 'text-3xl' }, props.medal),
         h('div', {
           class: `rounded-full bg-brand-dark border-2 ${props.borderColor} flex items-center justify-center font-black text-brand-red uppercase ${isLg ? 'w-20 h-20 text-2xl' : 'w-14 h-14 text-base'}`,
-        }, initials(props.player.full_name)),
+        }, initials(props.player.name)),
         h('div', { class: 'text-center' }, [
-          h('p', { class: `font-black text-brand-yellow uppercase tracking-wide ${isLg ? 'text-lg' : 'text-sm'}` }, props.player.full_name),
-          props.player.nickname
-            ? h('p', { class: 'text-brand-yellow/40 text-xs' }, `"${props.player.nickname}"`)
-            : null,
+          h('p', { class: `font-black text-brand-yellow uppercase tracking-wide ${isLg ? 'text-lg' : 'text-sm'}` }, props.player.name),
           h('p', { class: 'text-brand-yellow/30 text-xs mt-1' }, props.location),
         ]),
         h('div', { class: 'mt-1' }, [
-          h('span', { class: `font-black text-brand-red ${isLg ? 'text-2xl' : 'text-lg'}` }, (props.player.rating_points ?? 0).toLocaleString()),
+          h('span', { class: `font-black text-brand-red ${isLg ? 'text-2xl' : 'text-lg'}` }, (props.player.points ?? 0).toLocaleString()),
           h('span', { class: 'text-brand-yellow/30 text-xs ml-1' }, 'pts'),
         ]),
         h('div', {
@@ -211,7 +207,7 @@ const filter = ref({
   city_code: '',
 })
 
-// ── Lookup maps ──────────────────────────────────────────────────────────────
+// ── Lookup maps (for filter name resolution) ────────────────────────────────
 const regionMap = computed(() => Object.fromEntries(regions.value.map(r => [r.code, r.name])))
 const provinceMap = computed(() => Object.fromEntries(provinces.value.map(p => [p.code, p.name])))
 const cityMap = computed(() => Object.fromEntries(cities.value.map(c => [c.code, c.name])))
@@ -221,10 +217,7 @@ function initials(name: string) {
   return (name ?? '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
 }
 function locationLabel(p: Player) {
-  const city = cityMap.value[p.city_code]
-  const province = provinceMap.value[p.province_code]
-  const region = regionMap.value[p.region_code]
-  return [city, province].filter(Boolean).join(', ') || region || '—'
+  return [p.city, p.province].filter(Boolean).join(', ') || p.region || '—'
 }
 
 // ── Derived lists ────────────────────────────────────────────────────────────
@@ -243,14 +236,18 @@ watch(() => filter.value.province_code, async (code) => {
 const rankedPlayers = computed(() => {
   let list = [...players.value]
 
-  if (filter.value.scope === 'regional' && filter.value.region_code)
-    list = list.filter(p => p.region_code === filter.value.region_code)
-  else if (filter.value.scope === 'provincial' && filter.value.province_code)
-    list = list.filter(p => p.province_code === filter.value.province_code)
-  else if (filter.value.scope === 'local' && filter.value.city_code)
-    list = list.filter(p => p.city_code === filter.value.city_code)
+  if (filter.value.scope === 'regional' && filter.value.region_code) {
+    const regionName = regionMap.value[filter.value.region_code] ?? ''
+    list = list.filter(p => regionName.includes(p.region) || p.region === regionName)
+  } else if (filter.value.province_code) {
+    const provinceName = provinceMap.value[filter.value.province_code] ?? ''
+    list = list.filter(p => p.province === provinceName)
+  } else if (filter.value.city_code) {
+    const cityName = cityMap.value[filter.value.city_code] ?? ''
+    list = list.filter(p => p.city === cityName)
+  }
 
-  return list.sort((a, b) => b.rating_points - a.rating_points)
+  return list.sort((a, b) => (b.points ?? 0) - (a.points ?? 0))
 })
 
 // ── Filter change handlers ───────────────────────────────────────────────────
@@ -270,16 +267,21 @@ function onProvinceChange() {
 // ── Data fetching ────────────────────────────────────────────────────────────
 async function fetchAll() {
   loading.value = true
-  const [{ data: pl, error: plErr }, rg, pr] = await Promise.all([
-    supabase.from('players').select('*'),
-    getRegions(),
-    getProvinces(),
-  ])
-  if (plErr) console.error('players fetch error:', plErr)
-  players.value = (pl ?? []) as Player[]
-  regions.value = rg
-  provinces.value = pr
-  loading.value = false
+  try {
+    const [{ data: pl, error: plErr }, rg, pr] = await Promise.all([
+      supabase.from('players').select('*'),
+      getRegions(),
+      getProvinces(),
+    ])
+    if (plErr) console.error('players fetch error:', plErr)
+    players.value = (pl ?? []) as Player[]
+    regions.value = rg
+    provinces.value = pr
+  } catch (e) {
+    console.error('fetchAll error:', e)
+  } finally {
+    loading.value = false
+  }
 }
 
 onMounted(fetchAll)
