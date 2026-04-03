@@ -232,8 +232,13 @@ const filteredProvinces = computed(() =>
 )
 
 watch(() => filter.value.province_code, async (code) => {
-  if (code) cities.value = await getCitiesByProvince(code)
-  else cities.value = []
+  if (code) {
+    cities.value = await getCitiesByProvince(code)
+    console.log('PSGC cities:', cities.value.map(c => c.name))
+    console.log('DB cities:', [...new Set(players.value.map(p => p.city))])
+  } else {
+    cities.value = []
+  }
 })
 
 // ── Ranked players ───────────────────────────────────────────────────────────
@@ -250,7 +255,10 @@ const rankedPlayers = computed(() => {
   }
   if (filter.value.city_code) {
     const cityName = (cityMap.value[filter.value.city_code] ?? '').toLowerCase()
-    list = list.filter(p => (p.city ?? '').toLowerCase() === cityName)
+    list = list.filter(p => {
+      const dbCity = (p.city ?? '').toLowerCase()
+      return dbCity === cityName || dbCity.includes(cityName) || cityName.includes(dbCity)
+    })
   }
 
   return list.sort((a, b) => (b.points ?? 0) - (a.points ?? 0))
