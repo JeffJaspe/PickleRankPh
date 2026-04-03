@@ -48,7 +48,7 @@
           <div class="flex flex-col gap-1">
             <label class="text-[10px] uppercase tracking-widest text-brand-yellow/40 font-bold">Province</label>
             <select v-model="filter.province_code" @change="onProvinceChange"
-              :disabled="!filter.region_code"
+              :disabled="!filter.region_code || filteredProvinces.length === 1"
               class="bg-brand-dark border border-brand-light text-brand-yellow text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-brand-red transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
               <option value="">All Provinces</option>
               <option v-for="p in filteredProvinces" :key="p.code" :value="p.code">{{ p.name }}</option>
@@ -271,8 +271,13 @@ function onScopeChange() {
   filter.value.city_code = ''
 }
 function onRegionChange() {
-  filter.value.province_code = ''
   filter.value.city_code = ''
+  const provinces = filteredProvinces.value
+  if (provinces.length === 1) {
+    filter.value.province_code = provinces[0].code
+  } else {
+    filter.value.province_code = ''
+  }
 }
 function onProvinceChange() {
   filter.value.city_code = ''
