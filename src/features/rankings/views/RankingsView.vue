@@ -131,6 +131,7 @@
                 </div>
                 <div class="min-w-0">
                   <p class="text-brand-yellow font-bold text-sm truncate group-hover:text-white transition-colors">{{ player.name }}</p>
+                  <p v-if="player.dupr_rating" class="text-brand-yellow/40 text-xs">DUPR {{ player.dupr_rating }}</p>
                 </div>
               </div>
               <span class="hidden sm:flex items-center text-brand-yellow/40 text-xs text-right justify-end">
@@ -179,6 +180,9 @@ const SpotlightCard = defineComponent({
         }, initials(props.player.name)),
         h('div', { class: 'text-center' }, [
           h('p', { class: `font-black text-brand-yellow uppercase tracking-wide ${isLg ? 'text-lg' : 'text-sm'}` }, props.player.name),
+          props.player.dupr_rating
+            ? h('p', { class: 'text-brand-yellow/40 text-xs' }, `DUPR ${props.player.dupr_rating}`)
+            : null,
           h('p', { class: 'text-brand-yellow/30 text-xs mt-1' }, props.location),
         ]),
         h('div', { class: 'mt-1' }, [
