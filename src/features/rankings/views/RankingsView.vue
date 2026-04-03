@@ -170,7 +170,7 @@ const SpotlightCard = defineComponent({
     glowColor: { type: String, default: 'shadow-brand-light/20' },
   },
   setup(props) {
-    const initials = (name: string) => name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    const initials = (name: string) => (name ?? '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     return () => {
       const isLg = props.size === 'lg'
       return h('div', {
@@ -220,7 +220,7 @@ const cityMap = computed(() => Object.fromEntries(cities.value.map(c => [c.code,
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 function initials(name: string) {
-  return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+  return (name ?? '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
 }
 function locationLabel(p: Player) {
   const city = cityMap.value[p.city_code]
