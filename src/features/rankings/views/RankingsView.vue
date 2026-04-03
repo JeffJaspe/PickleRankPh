@@ -240,15 +240,17 @@ watch(() => filter.value.province_code, async (code) => {
 const rankedPlayers = computed(() => {
   let list = [...players.value]
 
-  if (filter.value.scope === 'regional' && filter.value.region_code) {
-    const regionName = regionMap.value[filter.value.region_code] ?? ''
-    list = list.filter(p => regionName.includes(p.region) || p.region === regionName)
-  } else if (filter.value.province_code) {
-    const provinceName = provinceMap.value[filter.value.province_code] ?? ''
-    list = list.filter(p => p.province === provinceName)
-  } else if (filter.value.city_code) {
-    const cityName = cityMap.value[filter.value.city_code] ?? ''
-    list = list.filter(p => p.city === cityName)
+  if (filter.value.region_code) {
+    const regionName = (regionMap.value[filter.value.region_code] ?? '').toLowerCase()
+    list = list.filter(p => regionName.includes((p.region ?? '').toLowerCase()) || (p.region ?? '').toLowerCase() === regionName)
+  }
+  if (filter.value.province_code) {
+    const provinceName = (provinceMap.value[filter.value.province_code] ?? '').toLowerCase()
+    list = list.filter(p => (p.province ?? '').toLowerCase() === provinceName)
+  }
+  if (filter.value.city_code) {
+    const cityName = (cityMap.value[filter.value.city_code] ?? '').toLowerCase()
+    list = list.filter(p => (p.city ?? '').toLowerCase() === cityName)
   }
 
   return list.sort((a, b) => (b.points ?? 0) - (a.points ?? 0))
