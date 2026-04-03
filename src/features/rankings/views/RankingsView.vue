@@ -62,7 +62,7 @@
               :disabled="!filter.province_code"
               class="bg-brand-dark border border-brand-light text-brand-yellow text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-brand-red transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
               <option value="">All Cities</option>
-              <option v-for="c in filteredCities" :key="c.code" :value="c.code">{{ c.name }}</option>
+              <option v-for="c in cities" :key="c.code" :value="c.code">{{ c.name }}</option>
             </select>
           </div>
         </div>
