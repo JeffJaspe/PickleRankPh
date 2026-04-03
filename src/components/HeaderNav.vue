@@ -281,15 +281,16 @@ function toggleMobileAccordion(label: string) {
 
 /* Secret admin gate — barely there, no label, no tooltip */
 .secret-gate {
-  color: transparent;
-  transition: color 0.4s ease, opacity 0.4s ease;
-  opacity: 0.08;
+  color: rgba(255, 255, 255, 0.20);
+  transition: color 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+  opacity: 1;
   cursor: default;
 }
 .secret-gate:hover {
   color: #ff4655;
-  opacity: 0.35;
+  opacity: 1;
   cursor: pointer;
+  transform: scale(1.15);
 }
 
 /* Accordion transition */
