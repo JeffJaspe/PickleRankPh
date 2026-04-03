@@ -3,3 +3,10 @@
 @tailwind utilities;
 * { box-sizing: border-box; }
 body { margin: 0; background: #0F1923; color: #ECE8D9; }
+
+/* Site-wide theme variables — updated by AdminBranding via useTheme.ts */
+:root {
+  --color-primary: #FF4655;
+  --color-secondary: #0F1923;
+  --color-accent: #ECE8D9;
+}

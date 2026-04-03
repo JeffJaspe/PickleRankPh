@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -28,20 +29,27 @@ const router = createRouter({
       children: [
         { path: '', redirect: '/admin/dashboard' },
         { path: 'dashboard', name: 'admin-dashboard', component: () => import('@/features/admin/views/AdminDashboard.vue') },
+        { path: 'users', name: 'admin-users', component: () => import('@/features/admin/views/AdminUsers.vue') },
         { path: 'players', name: 'admin-players', component: () => import('@/features/admin/views/AdminPlayers.vue') },
         { path: 'tournaments', name: 'admin-tournaments', component: () => import('@/features/admin/views/AdminTournaments.vue') },
         { path: 'matches', name: 'admin-matches', component: () => import('@/features/admin/views/AdminMatches.vue') },
         { path: 'branding', name: 'admin-branding', component: () => import('@/features/admin/views/AdminBranding.vue') },
       ],
     },
-    { path: '/login', name: 'login', component: () => import('@/features/admin/views/AdminLogin.vue') },
+    {
+      path: '/admin/login',
+      name: 'admin-login',
+      component: () => import('@/features/admin/views/AdminLogin.vue'),
+    },
   ],
 })
+
 router.beforeEach(async (to) => {
   if (to.meta.requiresAuth) {
     const auth = useAuthStore()
     await auth.initialize()
-    if (!auth.user) return { name: 'login' }
+    if (!auth.user) return { name: 'admin-login' }
   }
 })
+
 export default router
