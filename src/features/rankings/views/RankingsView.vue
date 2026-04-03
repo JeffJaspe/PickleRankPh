@@ -140,7 +140,7 @@
                 {{ locationLabel(player) }}
               </span>
               <span class="flex items-center justify-end font-black text-brand-red text-sm">
-                {{ player.rating_points.toLocaleString() }}
+                {{ (player.rating_points ?? 0).toLocaleString() }}
               </span>
             </div>
           </div>
@@ -188,7 +188,7 @@ const SpotlightCard = defineComponent({
           h('p', { class: 'text-brand-yellow/30 text-xs mt-1' }, props.location),
         ]),
         h('div', { class: 'mt-1' }, [
-          h('span', { class: `font-black text-brand-red ${isLg ? 'text-2xl' : 'text-lg'}` }, props.player.rating_points.toLocaleString()),
+          h('span', { class: `font-black text-brand-red ${isLg ? 'text-2xl' : 'text-lg'}` }, (props.player.rating_points ?? 0).toLocaleString()),
           h('span', { class: 'text-brand-yellow/30 text-xs ml-1' }, 'pts'),
         ]),
         h('div', {
@@ -272,12 +272,13 @@ function onProvinceChange() {
 // ── Data fetching ────────────────────────────────────────────────────────────
 async function fetchAll() {
   loading.value = true
-  const [{ data: pl }, rg, pr, ci] = await Promise.all([
+  const [{ data: pl, error: plErr }, rg, pr, ci] = await Promise.all([
     supabase.from('players').select('*'),
     getRegions(),
     getProvinces(),
     getCities(),
   ])
+  if (plErr) console.error('players fetch error:', plErr)
   players.value = (pl ?? []) as Player[]
   regions.value = rg
   provinces.value = pr
