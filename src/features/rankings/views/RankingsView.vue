@@ -38,33 +38,33 @@
           <!-- Region -->
           <div class="flex flex-col gap-1">
             <label class="text-[10px] uppercase tracking-widest text-brand-yellow/40 font-bold">Region</label>
-            <select v-model="filter.region_id" @change="onRegionChange"
+            <select v-model="filter.region_code" @change="onRegionChange"
               :disabled="filter.scope === 'national'"
               class="bg-brand-dark border border-brand-light text-brand-yellow text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-brand-red transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
               <option value="">All Regions</option>
-              <option v-for="r in regions" :key="r.id" :value="r.id">{{ r.name }}</option>
+              <option v-for="r in regions" :key="r.code" :value="r.code">{{ r.name }}</option>
             </select>
           </div>
 
           <!-- Province -->
           <div class="flex flex-col gap-1">
             <label class="text-[10px] uppercase tracking-widest text-brand-yellow/40 font-bold">Province</label>
-            <select v-model="filter.province_id" @change="onProvinceChange"
-              :disabled="!filter.region_id || filter.scope === 'national' || filter.scope === 'regional'"
+            <select v-model="filter.province_code" @change="onProvinceChange"
+              :disabled="!filter.region_code || filter.scope === 'national' || filter.scope === 'regional'"
               class="bg-brand-dark border border-brand-light text-brand-yellow text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-brand-red transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
               <option value="">All Provinces</option>
-              <option v-for="p in filteredProvinces" :key="p.id" :value="p.id">{{ p.name }}</option>
+              <option v-for="p in filteredProvinces" :key="p.code" :value="p.code">{{ p.name }}</option>
             </select>
           </div>
 
           <!-- City -->
           <div class="flex flex-col gap-1">
             <label class="text-[10px] uppercase tracking-widest text-brand-yellow/40 font-bold">City / Town</label>
-            <select v-model="filter.city_id"
-              :disabled="!filter.province_id || filter.scope !== 'local'"
+            <select v-model="filter.city_code"
+              :disabled="!filter.province_code || filter.scope !== 'local'"
               class="bg-brand-dark border border-brand-light text-brand-yellow text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-brand-red transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
               <option value="">All Cities</option>
-              <option v-for="c in filteredCities" :key="c.id" :value="c.id">{{ c.name }}</option>
+              <option v-for="c in filteredCities" :key="c.code" :value="c.code">{{ c.name }}</option>
             </select>
           </div>
         </div>
@@ -92,20 +92,20 @@
             <!-- #2 -->
             <div v-if="rankedPlayers[1]"
               class="w-full sm:w-64 order-2 sm:order-1">
-              <SpotlightCard :player="rankedPlayers[1]" :rank="2" medal="🥈"
+              <SpotlightCard :player="rankedPlayers[1]" :rank="2" medal="🥈" :location="locationLabel(rankedPlayers[1])"
                 size="sm" border-color="border-brand-light" glow-color="shadow-brand-light/20" />
             </div>
 
             <!-- #1 (center, bigger) -->
             <div class="w-full sm:w-72 order-1 sm:order-2">
-              <SpotlightCard :player="rankedPlayers[0]" :rank="1" medal="🥇"
+              <SpotlightCard :player="rankedPlayers[0]" :rank="1" medal="🥇" :location="locationLabel(rankedPlayers[0])"
                 size="lg" border-color="border-brand-red" glow-color="shadow-brand-red/40" />
             </div>
 
             <!-- #3 -->
             <div v-if="rankedPlayers[2]"
               class="w-full sm:w-64 order-3">
-              <SpotlightCard :player="rankedPlayers[2]" :rank="3" medal="🥉"
+              <SpotlightCard :player="rankedPlayers[2]" :rank="3" medal="🥉" :location="locationLabel(rankedPlayers[2])"
                 size="sm" border-color="border-brand-light" glow-color="shadow-brand-light/20" />
             </div>
 
@@ -154,7 +154,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, defineComponent, h } from 'vue'
 import { supabase } from '@/lib/supabase'
-import type { Player, Region, Province, City, RankingScope } from '@/types'
+import { getRegions, getProvinces, getCities, regionCodeOf, provinceCodeOf } from '@/lib/psgc'
+import type { PsgcRegion, PsgcProvince, PsgcCity } from '@/lib/psgc'
+import type { Player, RankingScope } from '@/types'
 
 // ── Spotlight Card (inline component) ──────────────────────────────────────
 const SpotlightCard = defineComponent({
@@ -162,13 +164,13 @@ const SpotlightCard = defineComponent({
     player: { type: Object as () => Player, required: true },
     rank: { type: Number, required: true },
     medal: { type: String, required: true },
+    location: { type: String, default: '—' },
     size: { type: String as () => 'sm' | 'lg', default: 'sm' },
     borderColor: { type: String, default: 'border-brand-light' },
     glowColor: { type: String, default: 'shadow-brand-light/20' },
   },
   setup(props) {
     const initials = (name: string) => name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
-    const locationLabel = (p: Player) => [p.city?.name, p.province?.name].filter(Boolean).join(', ') || p.region?.name || '—'
     return () => {
       const isLg = props.size === 'lg'
       return h('div', {
@@ -183,7 +185,7 @@ const SpotlightCard = defineComponent({
           props.player.nickname
             ? h('p', { class: 'text-brand-yellow/40 text-xs' }, `"${props.player.nickname}"`)
             : null,
-          h('p', { class: 'text-brand-yellow/30 text-xs mt-1' }, locationLabel(props.player)),
+          h('p', { class: 'text-brand-yellow/30 text-xs mt-1' }, props.location),
         ]),
         h('div', { class: 'mt-1' }, [
           h('span', { class: `font-black text-brand-red ${isLg ? 'text-2xl' : 'text-lg'}` }, props.player.rating_points.toLocaleString()),
@@ -200,34 +202,42 @@ const SpotlightCard = defineComponent({
 // ── State ───────────────────────────────────────────────────────────────────
 const loading = ref(true)
 const players = ref<Player[]>([])
-const regions = ref<Region[]>([])
-const provinces = ref<Province[]>([])
-const cities = ref<City[]>([])
+const regions = ref<PsgcRegion[]>([])
+const provinces = ref<PsgcProvince[]>([])
+const cities = ref<PsgcCity[]>([])
 
 const filter = ref({
   scope: 'national' as RankingScope,
-  region_id: '',
-  province_id: '',
-  city_id: '',
+  region_code: '',
+  province_code: '',
+  city_code: '',
 })
+
+// ── Lookup maps ──────────────────────────────────────────────────────────────
+const regionMap = computed(() => Object.fromEntries(regions.value.map(r => [r.code, r.name])))
+const provinceMap = computed(() => Object.fromEntries(provinces.value.map(p => [p.code, p.name])))
+const cityMap = computed(() => Object.fromEntries(cities.value.map(c => [c.code, c.name])))
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 function initials(name: string) {
   return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
 }
 function locationLabel(p: Player) {
-  return [p.city?.name, p.province?.name].filter(Boolean).join(', ') || p.region?.name || '—'
+  const city = cityMap.value[p.city_code]
+  const province = provinceMap.value[p.province_code]
+  const region = regionMap.value[p.region_code]
+  return [city, province].filter(Boolean).join(', ') || region || '—'
 }
 
 // ── Derived lists ────────────────────────────────────────────────────────────
 const filteredProvinces = computed(() =>
-  filter.value.region_id
-    ? provinces.value.filter(p => p.region_id === filter.value.region_id)
+  filter.value.region_code
+    ? provinces.value.filter(p => regionCodeOf(p) === filter.value.region_code)
     : provinces.value
 )
 const filteredCities = computed(() =>
-  filter.value.province_id
-    ? cities.value.filter(c => c.province_id === filter.value.province_id)
+  filter.value.province_code
+    ? cities.value.filter(c => provinceCodeOf(c) === filter.value.province_code)
     : cities.value
 )
 
@@ -235,43 +245,43 @@ const filteredCities = computed(() =>
 const rankedPlayers = computed(() => {
   let list = [...players.value]
 
-  if (filter.value.scope === 'regional' && filter.value.region_id)
-    list = list.filter(p => p.region_id === filter.value.region_id)
-  else if (filter.value.scope === 'provincial' && filter.value.province_id)
-    list = list.filter(p => p.province_id === filter.value.province_id)
-  else if (filter.value.scope === 'local' && filter.value.city_id)
-    list = list.filter(p => p.city_id === filter.value.city_id)
+  if (filter.value.scope === 'regional' && filter.value.region_code)
+    list = list.filter(p => p.region_code === filter.value.region_code)
+  else if (filter.value.scope === 'provincial' && filter.value.province_code)
+    list = list.filter(p => p.province_code === filter.value.province_code)
+  else if (filter.value.scope === 'local' && filter.value.city_code)
+    list = list.filter(p => p.city_code === filter.value.city_code)
 
   return list.sort((a, b) => b.rating_points - a.rating_points)
 })
 
 // ── Filter change handlers ───────────────────────────────────────────────────
 function onScopeChange() {
-  filter.value.region_id = ''
-  filter.value.province_id = ''
-  filter.value.city_id = ''
+  filter.value.region_code = ''
+  filter.value.province_code = ''
+  filter.value.city_code = ''
 }
 function onRegionChange() {
-  filter.value.province_id = ''
-  filter.value.city_id = ''
+  filter.value.province_code = ''
+  filter.value.city_code = ''
 }
 function onProvinceChange() {
-  filter.value.city_id = ''
+  filter.value.city_code = ''
 }
 
 // ── Data fetching ────────────────────────────────────────────────────────────
 async function fetchAll() {
   loading.value = true
-  const [{ data: pl }, { data: rg }, { data: pr }, { data: ci }] = await Promise.all([
-    supabase.from('players').select('*, city:cities(id,name,province_id), province:provinces(id,name,region_id), region:regions(id,name,code)'),
-    supabase.from('regions').select('*').order('name'),
-    supabase.from('provinces').select('*').order('name'),
-    supabase.from('cities').select('*').order('name'),
+  const [{ data: pl }, rg, pr, ci] = await Promise.all([
+    supabase.from('players').select('*'),
+    getRegions(),
+    getProvinces(),
+    getCities(),
   ])
   players.value = (pl ?? []) as Player[]
-  regions.value = (rg ?? []) as Region[]
-  provinces.value = (pr ?? []) as Province[]
-  cities.value = (ci ?? []) as City[]
+  regions.value = rg
+  provinces.value = pr
+  cities.value = ci
   loading.value = false
 }
 

@@ -4,7 +4,7 @@ import { requireAdmin } from '../_lib/auth'
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(200).end()
   if (req.method === 'GET') {
-    const { data, error } = await supabase.from('players').select('*, city:cities(id,name), province:provinces(id,name), region:regions(id,name)').order('rating_points', { ascending: false })
+    const { data, error } = await supabase.from('players').select('*').order('rating_points', { ascending: false })
     if (error) return res.status(500).json({ error: error.message })
     return res.status(200).json(data)
   }
