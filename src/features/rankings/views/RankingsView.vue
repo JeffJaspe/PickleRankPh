@@ -151,10 +151,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, defineComponent, h } from 'vue'
-import { supabase } from '@/lib/supabase'
+import { usePlayersStore } from '@/stores/players'
 import { getRegions, getProvinces, getCitiesByProvince, regionCodeOf } from '@/lib/psgc'
 import type { PsgcRegion, PsgcProvince, PsgcCity } from '@/lib/psgc'
 import type { Player, RankingScope } from '@/types'
+
+const playerStore = usePlayersStore()
 
 // ── Spotlight Card (inline component) ──────────────────────────────────────
 const SpotlightCard = defineComponent({
@@ -198,8 +200,8 @@ const SpotlightCard = defineComponent({
 })
 
 // ── State ───────────────────────────────────────────────────────────────────
-const loading = ref(true)
-const players = ref<Player[]>([])
+const loading = computed(() => playerStore.loading)
+const players = computed(() => playerStore.players)
 const regions = ref<PsgcRegion[]>([])
 const provinces = ref<PsgcProvince[]>([])
 const cities = ref<PsgcCity[]>([])
@@ -232,13 +234,7 @@ const filteredProvinces = computed(() =>
 )
 
 watch(() => filter.value.province_code, async (code) => {
-  if (code) {
-    cities.value = await getCitiesByProvince(code)
-    console.log('PSGC cities:', cities.value.map(c => c.name))
-    console.log('DB cities:', [...new Set(players.value.map(p => p.city))])
-  } else {
-    cities.value = []
-  }
+  cities.value = code ? await getCitiesByProvince(code) : []
 })
 
 // ── Ranked players ───────────────────────────────────────────────────────────
@@ -284,24 +280,13 @@ function onProvinceChange() {
 }
 
 // ── Data fetching ────────────────────────────────────────────────────────────
-async function fetchAll() {
-  loading.value = true
-  try {
-    const [{ data: pl, error: plErr }, rg, pr] = await Promise.all([
-      supabase.from('players').select('*'),
-      getRegions(),
-      getProvinces(),
-    ])
-    if (plErr) console.error('players fetch error:', plErr)
-    players.value = (pl ?? []) as Player[]
-    regions.value = rg
-    provinces.value = pr
-  } catch (e) {
-    console.error('fetchAll error:', e)
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(fetchAll)
+onMounted(async () => {
+  const [rg, pr] = await Promise.all([
+    getRegions(),
+    getProvinces(),
+    playerStore.players.length === 0 ? playerStore.fetch() : Promise.resolve(),
+  ])
+  regions.value = rg
+  provinces.value = pr
+})
 </script>

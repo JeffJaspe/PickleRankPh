@@ -15,7 +15,10 @@
             <span v-html="stat.icon" class="w-4 h-4" :class="stat.iconColor" />
           </span>
         </div>
-        <p class="text-3xl font-bold text-gray-900">{{ stat.value }}</p>
+        <p class="text-3xl font-bold text-gray-900">
+          <span v-if="loading" class="inline-block w-10 h-7 bg-gray-200 rounded animate-pulse" />
+          <span v-else>{{ stat.value }}</span>
+        </p>
         <p class="mt-1 text-xs text-gray-400">{{ stat.note }}</p>
       </div>
     </div>
@@ -39,12 +42,33 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
+import { supabase } from '@/lib/supabase'
+
+const loading = ref(true)
+const counts = ref({ players: 0, matches: 0, tournaments: 0, ranked: 0 })
+
+onMounted(async () => {
+  const [players, matches, tournaments, ranked] = await Promise.all([
+    supabase.from('players').select('*', { count: 'exact', head: true }),
+    supabase.from('matches').select('*', { count: 'exact', head: true }),
+    supabase.from('tournaments').select('*', { count: 'exact', head: true }),
+    supabase.from('players').select('*', { count: 'exact', head: true }).gt('points', 0),
+  ])
+  counts.value = {
+    players: players.count ?? 0,
+    matches: matches.count ?? 0,
+    tournaments: tournaments.count ?? 0,
+    ranked: ranked.count ?? 0,
+  }
+  loading.value = false
+})
 
 const stats = [
   {
     label: 'Total Players',
-    value: '—',
+    get value() { return counts.value.players },
     note: 'Registered in system',
     iconBg: 'bg-blue-50',
     iconColor: 'text-blue-500',
@@ -52,7 +76,7 @@ const stats = [
   },
   {
     label: 'Total Matches',
-    value: '—',
+    get value() { return counts.value.matches },
     note: 'Logged matches',
     iconBg: 'bg-green-50',
     iconColor: 'text-green-500',
@@ -60,7 +84,7 @@ const stats = [
   },
   {
     label: 'Tournaments',
-    value: '—',
+    get value() { return counts.value.tournaments },
     note: 'Active & past',
     iconBg: 'bg-yellow-50',
     iconColor: 'text-yellow-500',
@@ -68,7 +92,7 @@ const stats = [
   },
   {
     label: 'Ranked Players',
-    value: '—',
+    get value() { return counts.value.ranked },
     note: 'With ranking points',
     iconBg: 'bg-purple-50',
     iconColor: 'text-purple-500',
