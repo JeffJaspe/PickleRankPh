@@ -162,9 +162,13 @@ export function useTheme() {
       .update(patch)
       .eq('id', SITE_SETTINGS_ID)
     if (error) throw error
-    // Refresh cache
-    const current = loadCachedAssets()
-    if (current) writeCachedAssets({ ...current, ...patch })
+    // Update cache — if bg_image_url is changing, bust the old cache entirely
+    if ('bg_image_url' in patch) {
+      localStorage.removeItem(ASSETS_KEY)
+    } else {
+      const current = loadCachedAssets()
+      if (current) writeCachedAssets({ ...current, ...patch })
+    }
   }
 
   async function uploadBrandingFile(file: File, path: string): Promise<string> {
