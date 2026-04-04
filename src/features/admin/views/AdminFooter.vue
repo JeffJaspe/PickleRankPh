@@ -25,7 +25,7 @@
       >
         <!-- Type badge -->
         <span
-          class="text-xs font-semibold px-2 py-0.5 rounded"
+          class="text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0"
           :class="item.type === 'image' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'"
         >
           {{ item.type }}
@@ -37,24 +37,23 @@
             <img :src="item.url" :alt="item.label ?? ''" class="h-8 object-contain" />
           </template>
           <template v-else>
-            <p class="text-sm font-medium text-gray-800 truncate">{{ item.label }}</p>
-            <p class="text-xs text-gray-400 truncate">{{ item.url }}</p>
+            <div class="flex items-center gap-2">
+              <img v-if="item.image_url" :src="item.image_url" class="h-6 w-6 object-contain flex-shrink-0 rounded" :alt="item.label ?? ''" />
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-800 truncate">{{ item.label }}</p>
+                <p class="text-xs text-gray-400 truncate">{{ item.url }}</p>
+              </div>
+            </div>
           </template>
         </div>
 
         <!-- Sort order -->
-        <span class="text-xs text-gray-400 w-8 text-center">#{{ item.sort_order }}</span>
+        <span class="text-xs text-gray-400 w-8 text-center flex-shrink-0">#{{ item.sort_order }}</span>
 
         <!-- Actions -->
-        <div class="flex gap-2">
-          <button
-            class="text-xs text-indigo-600 hover:underline"
-            @click="openEdit(item)"
-          >Edit</button>
-          <button
-            class="text-xs text-red-500 hover:underline"
-            @click="confirmDelete(item.id)"
-          >Delete</button>
+        <div class="flex gap-2 flex-shrink-0">
+          <button class="text-xs text-indigo-600 hover:underline" @click="openEdit(item)">Edit</button>
+          <button class="text-xs text-red-500 hover:underline" @click="confirmDelete(item.id)">Delete</button>
         </div>
       </div>
 
@@ -69,7 +68,7 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       @click.self="closeModal"
     >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
         <h3 class="text-lg font-bold text-gray-800">{{ modal.isEdit ? 'Edit' : 'Add' }} Footer Item</h3>
 
         <!-- Type -->
@@ -90,27 +89,73 @@
           </div>
         </div>
 
-        <!-- Label (links only) -->
-        <div v-if="modal.type === 'link'">
-          <label class="block text-xs font-medium text-gray-600 mb-1">Label</label>
-          <input
-            v-model="modal.label"
-            type="text"
-            placeholder="e.g. Facebook"
-            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          />
-        </div>
+        <!-- LINK fields -->
+        <template v-if="modal.type === 'link'">
+          <!-- Label -->
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Label</label>
+            <input
+              v-model="modal.label"
+              type="text"
+              placeholder="e.g. Facebook"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+          </div>
 
-        <!-- URL / Upload -->
-        <div>
-          <label class="block text-xs font-medium text-gray-600 mb-1">
-            {{ modal.type === 'image' ? 'Image' : 'Link URL' }}
-          </label>
+          <!-- Link URL -->
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Link URL</label>
+            <input
+              v-model="modal.url"
+              type="url"
+              placeholder="https://..."
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+          </div>
 
-          <!-- Image: upload button + optional URL override -->
-          <template v-if="modal.type === 'image'">
+          <!-- Icon / Image for link -->
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Icon / Image <span class="text-gray-400 font-normal">(optional — shown beside label)</span></label>
             <div class="space-y-2">
-              <!-- Upload -->
+              <div class="flex items-center gap-3">
+                <!-- Upload -->
+                <label
+                  class="inline-flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+                  :class="{ 'opacity-50 cursor-not-allowed': modal.iconUploading }"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  {{ modal.iconUploading ? 'Uploading…' : 'Upload Icon' }}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    class="sr-only"
+                    :disabled="modal.iconUploading"
+                    @change="handleIconUpload"
+                  />
+                </label>
+                <!-- Preview -->
+                <img v-if="modal.image_url" :src="modal.image_url" class="h-8 w-8 object-contain rounded border border-gray-200" />
+                <button v-if="modal.image_url" class="text-xs text-red-400 hover:underline" @click="modal.image_url = ''">Remove</button>
+              </div>
+              <p v-if="modal.iconUploadError" class="text-xs text-red-500">{{ modal.iconUploadError }}</p>
+              <!-- Or paste URL -->
+              <input
+                v-model="modal.image_url"
+                type="url"
+                placeholder="or paste icon URL…"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+            </div>
+          </div>
+        </template>
+
+        <!-- IMAGE fields -->
+        <template v-else>
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Image</label>
+            <div class="space-y-2">
               <label
                 class="inline-flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                 :class="{ 'opacity-50 cursor-not-allowed': modal.uploading }"
@@ -128,15 +173,7 @@
                 />
               </label>
               <p v-if="modal.uploadError" class="text-xs text-red-500">{{ modal.uploadError }}</p>
-
-              <!-- Preview -->
-              <img
-                v-if="modal.url"
-                :src="modal.url"
-                class="h-14 object-contain rounded border border-gray-200"
-              />
-
-              <!-- URL shown read-only after upload, editable for manual entry -->
+              <img v-if="modal.url" :src="modal.url" class="h-14 object-contain rounded border border-gray-200" />
               <input
                 v-model="modal.url"
                 type="url"
@@ -144,18 +181,8 @@
                 class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
-          </template>
-
-          <!-- Link: plain URL input -->
-          <template v-else>
-            <input
-              v-model="modal.url"
-              type="url"
-              placeholder="https://..."
-              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            />
-          </template>
-        </div>
+          </div>
+        </template>
 
         <!-- Sort order -->
         <div>
@@ -171,10 +198,7 @@
         <p v-if="modal.error" class="text-sm text-red-600">{{ modal.error }}</p>
 
         <div class="flex justify-end gap-3 pt-2">
-          <button
-            class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
-            @click="closeModal"
-          >Cancel</button>
+          <button class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800" @click="closeModal">Cancel</button>
           <button
             class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50"
             :disabled="modal.saving"
@@ -206,11 +230,14 @@ const modal = reactive({
   type: 'link' as 'link' | 'image',
   label: '',
   url: '',
+  image_url: '',
   sort_order: 0,
   saving: false,
   error: '',
   uploading: false,
   uploadError: '',
+  iconUploading: false,
+  iconUploadError: '',
 })
 
 function openAdd() {
@@ -220,8 +247,11 @@ function openAdd() {
   modal.type = 'link'
   modal.label = ''
   modal.url = ''
+  modal.image_url = ''
   modal.sort_order = store.items.length
   modal.error = ''
+  modal.uploadError = ''
+  modal.iconUploadError = ''
 }
 
 function openEdit(item: FooterItem) {
@@ -231,8 +261,11 @@ function openEdit(item: FooterItem) {
   modal.type = item.type
   modal.label = item.label ?? ''
   modal.url = item.url
+  modal.image_url = item.image_url ?? ''
   modal.sort_order = item.sort_order
   modal.error = ''
+  modal.uploadError = ''
+  modal.iconUploadError = ''
 }
 
 function closeModal() {
@@ -248,6 +281,7 @@ async function save() {
       type: modal.type,
       label: modal.type === 'link' ? modal.label || null : null,
       url: modal.url.trim(),
+      image_url: modal.type === 'link' ? modal.image_url.trim() || null : null,
       sort_order: modal.sort_order,
     }
     if (modal.isEdit) {
@@ -271,12 +305,28 @@ async function handleImageUpload(event: Event) {
   modal.uploading = true
   try {
     const ext = file.name.split('.').pop() ?? 'png'
-    const url = await uploadBrandingFile(file, `footer/img-${Date.now()}.${ext}`)
-    modal.url = url
+    modal.url = await uploadBrandingFile(file, `footer/img-${Date.now()}.${ext}`)
   } catch (err: any) {
     modal.uploadError = err?.message ?? 'Upload failed'
   } finally {
     modal.uploading = false
+    input.value = ''
+  }
+}
+
+async function handleIconUpload(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  modal.iconUploadError = ''
+  modal.iconUploading = true
+  try {
+    const ext = file.name.split('.').pop() ?? 'png'
+    modal.image_url = await uploadBrandingFile(file, `footer/icon-${Date.now()}.${ext}`)
+  } catch (err: any) {
+    modal.iconUploadError = err?.message ?? 'Upload failed'
+  } finally {
+    modal.iconUploading = false
     input.value = ''
   }
 }

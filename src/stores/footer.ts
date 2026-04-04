@@ -7,6 +7,7 @@ export interface FooterItem {
   type: 'link' | 'image'
   label: string | null
   url: string
+  image_url: string | null
   sort_order: number
   created_at: string
 }

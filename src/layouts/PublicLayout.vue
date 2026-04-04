@@ -18,14 +18,14 @@
     <HeaderNav class="relative z-10" />
 
     <!-- Layer 3: centered content container — background visible on sides -->
-    <main class="relative z-10 mx-auto max-w-[1400px] px-6 min-h-[calc(100vh-4rem)]">
-      <div class="bg-[var(--color-secondary)] min-h-[calc(100vh-4rem)]">
+    <main class="relative z-10 mx-auto w-full max-w-[1600px] px-0 sm:px-4 min-h-[calc(100vh-4rem)]">
+      <div class="min-h-[calc(100vh-4rem)]" style="background: rgb(var(--color-secondary-rgb) / 0.55);">
         <RouterView />
       </div>
     </main>
 
     <!-- Layer 4: footer -->
-    <div class="relative z-10 mx-auto max-w-[1400px] px-6">
+    <div class="relative z-10 mx-auto w-full max-w-[1600px] px-0 sm:px-4">
       <SiteFooter />
     </div>
   </div>
