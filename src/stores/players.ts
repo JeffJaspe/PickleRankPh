@@ -51,4 +51,8 @@ export const usePlayersStore = defineStore('players', () => {
   }
 
   return { players, loading, error, fetch, create, update, remove }
+}, {
+  persist: {
+    paths: ['players'],
+  },
 })

@@ -152,11 +152,16 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, defineComponent, h } from 'vue'
 import { usePlayersStore } from '@/stores/players'
+import { useRankingsStore } from '@/stores/rankings'
 import { getRegions, getProvinces, getCitiesByProvince, regionCodeOf } from '@/lib/psgc'
 import type { PsgcRegion, PsgcProvince, PsgcCity } from '@/lib/psgc'
 import type { Player, RankingScope } from '@/types'
 
 const playerStore = usePlayersStore()
+const rankingsStore = useRankingsStore()
+
+// Alias to keep template unchanged
+const filter = rankingsStore
 
 // ── Spotlight Card (inline component) ──────────────────────────────────────
 const SpotlightCard = defineComponent({
@@ -206,13 +211,6 @@ const regions = ref<PsgcRegion[]>([])
 const provinces = ref<PsgcProvince[]>([])
 const cities = ref<PsgcCity[]>([])
 
-const filter = ref({
-  scope: 'national' as RankingScope,
-  region_code: '',
-  province_code: '',
-  city_code: '',
-})
-
 // ── Lookup maps (for filter name resolution) ────────────────────────────────
 const regionMap = computed(() => Object.fromEntries(regions.value.map(r => [r.code, r.name])))
 const provinceMap = computed(() => Object.fromEntries(provinces.value.map(p => [p.code, p.name])))
@@ -228,12 +226,12 @@ function locationLabel(p: Player) {
 
 // ── Derived lists ────────────────────────────────────────────────────────────
 const filteredProvinces = computed(() =>
-  filter.value.region_code
-    ? provinces.value.filter(p => regionCodeOf(p) === filter.value.region_code)
+  filter.region_code
+    ? provinces.value.filter(p => regionCodeOf(p) === filter.region_code)
     : provinces.value
 )
 
-watch(() => filter.value.province_code, async (code) => {
+watch(() => filter.province_code, async (code) => {
   cities.value = code ? await getCitiesByProvince(code) : []
 })
 
@@ -241,16 +239,16 @@ watch(() => filter.value.province_code, async (code) => {
 const rankedPlayers = computed(() => {
   let list = [...players.value]
 
-  if (filter.value.region_code) {
-    const regionName = (regionMap.value[filter.value.region_code] ?? '').toLowerCase()
+  if (filter.region_code) {
+    const regionName = (regionMap.value[filter.region_code] ?? '').toLowerCase()
     list = list.filter(p => regionName.includes((p.region ?? '').toLowerCase()) || (p.region ?? '').toLowerCase() === regionName)
   }
-  if (filter.value.province_code) {
-    const provinceName = (provinceMap.value[filter.value.province_code] ?? '').toLowerCase()
+  if (filter.province_code) {
+    const provinceName = (provinceMap.value[filter.province_code] ?? '').toLowerCase()
     list = list.filter(p => (p.province ?? '').toLowerCase() === provinceName)
   }
-  if (filter.value.city_code) {
-    const cityName = (cityMap.value[filter.value.city_code] ?? '').toLowerCase()
+  if (filter.city_code) {
+    const cityName = (cityMap.value[filter.city_code] ?? '').toLowerCase()
     list = list.filter(p => {
       const dbCity = (p.city ?? '').toLowerCase()
       return dbCity === cityName || dbCity.includes(cityName) || cityName.includes(dbCity)
@@ -262,21 +260,15 @@ const rankedPlayers = computed(() => {
 
 // ── Filter change handlers ───────────────────────────────────────────────────
 function onScopeChange() {
-  filter.value.region_code = ''
-  filter.value.province_code = ''
-  filter.value.city_code = ''
+  filter.resetGeo()
 }
 function onRegionChange() {
-  filter.value.city_code = ''
+  filter.city_code = ''
   const provinces = filteredProvinces.value
-  if (provinces.length === 1) {
-    filter.value.province_code = provinces[0].code
-  } else {
-    filter.value.province_code = ''
-  }
+  filter.province_code = provinces.length === 1 ? provinces[0].code : ''
 }
 function onProvinceChange() {
-  filter.value.city_code = ''
+  filter.city_code = ''
 }
 
 // ── Data fetching ────────────────────────────────────────────────────────────
@@ -288,5 +280,9 @@ onMounted(async () => {
   ])
   regions.value = rg
   provinces.value = pr
+  // Restore city list if a province was persisted
+  if (filter.province_code) {
+    cities.value = await getCitiesByProvince(filter.province_code)
+  }
 })
 </script>
