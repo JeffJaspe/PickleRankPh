@@ -19,7 +19,7 @@
           class="inline-flex items-center gap-2 text-sm font-medium opacity-70 hover:opacity-100 transition-opacity"
           :style="{ color: 'var(--color-accent)' }"
         >
-          <img v-if="item.image_url" :src="item.image_url" :alt="item.label ?? ''" class="h-6 w-6 object-contain flex-shrink-0" />
+          <img v-if="item.image_url" :src="item.image_url" :alt="item.label ?? ''" class="h-32 w-32 object-contain flex-shrink-0" />
           <span v-if="item.label">{{ item.label }}</span>
           <span v-else-if="!item.image_url">{{ item.url }}</span>
         </a>
