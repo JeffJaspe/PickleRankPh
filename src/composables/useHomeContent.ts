@@ -4,12 +4,21 @@ const STORAGE_KEY = 'home_content'
 
 export interface MatchItem {
   id: string
+  // Team / player names (player1b / player2b for doubles partners)
   player1: string
+  player1b: string
   player2: string
+  player2b: string
+  // Scores (overall or game-by-game separated by commas, e.g. "11,9,11")
   score1: string
   score2: string
+  // Metadata
+  category: string      // e.g. "Mixed Doubles Pro Main Draw"
+  round: string         // e.g. "Round 1" or "Semifinal"
+  scheduledTime: string // e.g. "9:00 AM PDT"
+  matchLink: string     // "See details" URL
   matchType: 'local' | 'national' | 'club'
-  status: 'ongoing' | 'finished'
+  status: 'upcoming' | 'ongoing' | 'finished'
 }
 
 export interface HomeSection {
@@ -132,11 +141,17 @@ export function useHomeContent() {
     section.matches.push({
       id: `match-${Date.now()}`,
       player1: '',
+      player1b: '',
       player2: '',
+      player2b: '',
       score1: '',
       score2: '',
+      category: '',
+      round: '',
+      scheduledTime: '',
+      matchLink: '',
       matchType: 'local',
-      status: 'finished',
+      status: 'upcoming',
     })
   }
 

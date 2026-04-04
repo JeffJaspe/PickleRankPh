@@ -164,38 +164,54 @@
                 </div>
               </div>
 
-              <!-- Featured matches preview -->
-              <div v-else-if="activeSection.type === 'featured_matches'" class="p-5">
-                <h2 class="text-base font-black text-brand-yellow uppercase tracking-widest mb-4">
+              <!-- Featured matches preview — bracket card style -->
+              <div v-else-if="activeSection.type === 'featured_matches'" class="p-4 space-y-2">
+                <p class="text-xs font-black text-brand-yellow uppercase tracking-widest mb-3">
                   {{ activeSection.title || 'Featured Matches' }}
-                </h2>
+                </p>
                 <div v-if="activeSection.matches.length === 0" class="text-xs text-brand-yellow/20 italic">No matches added yet.</div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div
-                    v-for="match in activeSection.matches.slice(0, 4)"
-                    :key="match.id"
-                    class="bg-brand-darker border border-brand-yellow/10 rounded-xl p-4"
-                  >
-                    <div class="flex items-center justify-between mb-3">
-                      <span :class="match.status === 'ongoing' ? 'text-green-400' : 'text-brand-yellow/30'" class="text-[10px] font-bold uppercase tracking-wider">
-                        {{ match.status === 'ongoing' ? '● LIVE' : 'Finished' }}
-                      </span>
-                      <span class="text-[10px] text-brand-yellow/20 uppercase tracking-wider">{{ matchTypeLabel(match.matchType) }}</span>
+                <div
+                  v-for="(match, mIdx) in activeSection.matches.slice(0, 3)"
+                  :key="match.id"
+                  class="bg-brand-mid border border-brand-light/30 rounded-lg overflow-hidden text-[11px]"
+                >
+                  <!-- Header -->
+                  <div class="flex items-center justify-between px-3 py-1.5 bg-brand-darker border-b border-brand-light/20">
+                    <span class="text-brand-yellow/60 font-medium truncate">{{ match.category || matchTypeLabel(match.matchType) }}</span>
+                    <span class="text-brand-yellow/30 flex-shrink-0 ml-2">Match {{ mIdx + 1 }}</span>
+                  </div>
+                  <!-- Body -->
+                  <div class="flex">
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-stretch border-b border-brand-light/20">
+                        <div class="flex-1 px-3 py-2">
+                          <p class="text-brand-yellow font-medium leading-tight">{{ match.player1 || 'Player 1' }}</p>
+                          <p v-if="match.player1b" class="text-brand-yellow font-medium leading-tight">{{ match.player1b }}</p>
+                        </div>
+                        <div class="w-10 border-l border-brand-light/20 flex items-center justify-center">
+                          <span class="font-bold text-brand-yellow/40">{{ match.score1 || '-' }}</span>
+                        </div>
+                      </div>
+                      <div class="flex items-stretch">
+                        <div class="flex-1 px-3 py-2">
+                          <p class="text-brand-yellow font-medium leading-tight">{{ match.player2 || 'Player 2' }}</p>
+                          <p v-if="match.player2b" class="text-brand-yellow font-medium leading-tight">{{ match.player2b }}</p>
+                        </div>
+                        <div class="w-10 border-l border-brand-light/20 flex items-center justify-center">
+                          <span class="font-bold text-brand-yellow/40">{{ match.score2 || '-' }}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                      <div class="flex-1 text-center">
-                        <p class="text-[10px] text-brand-yellow/40 truncate mb-1">{{ match.player1 || 'Player 1' }}</p>
-                        <p class="text-3xl font-black text-brand-yellow leading-none">{{ match.score1 || '—' }}</p>
-                      </div>
-                      <span class="text-brand-yellow/20 font-black text-xs">VS</span>
-                      <div class="flex-1 text-center">
-                        <p class="text-[10px] text-brand-yellow/40 truncate mb-1">{{ match.player2 || 'Player 2' }}</p>
-                        <p class="text-3xl font-black text-brand-yellow leading-none">{{ match.score2 || '—' }}</p>
-                      </div>
+                    <div class="w-24 border-l border-brand-light/20 px-2.5 py-2 flex flex-col justify-center gap-0.5">
+                      <p v-if="match.round" class="text-brand-yellow/40">Round: {{ match.round }}</p>
+                      <p :class="match.status === 'ongoing' ? 'text-green-400' : match.status === 'upcoming' ? 'text-brand-yellow/50' : 'text-brand-yellow/30'" class="font-medium capitalize">
+                        {{ match.status }}
+                      </p>
+                      <p v-if="match.scheduledTime" class="text-brand-yellow/60 font-semibold">{{ match.scheduledTime }}</p>
                     </div>
                   </div>
                 </div>
-                <p v-if="activeSection.matches.length > 4" class="text-xs text-brand-yellow/30 mt-2">+ {{ activeSection.matches.length - 4 }} more matches</p>
+                <p v-if="activeSection.matches.length > 3" class="text-xs text-brand-yellow/30">+ {{ activeSection.matches.length - 3 }} more</p>
               </div>
 
               <!-- Announcement preview -->
@@ -405,64 +421,51 @@
 
                     <!-- Match fields -->
                     <div class="p-3 space-y-3">
-                      <!-- Scoreboard row -->
-                      <div class="grid grid-cols-[1fr_auto_1fr] gap-3 items-end">
-                        <!-- Player 1 -->
-                        <div class="space-y-1.5">
-                          <div>
-                            <label class="field-label">Player 1 Name</label>
-                            <input
-                              :value="match.player1"
-                              type="text"
-                              class="field-input"
-                              placeholder="Full name"
-                              @input="patchMatch(activeSection.id, match.id, 'player1', ($event.target as HTMLInputElement).value)"
-                            />
-                          </div>
-                          <div>
-                            <label class="field-label">Score</label>
-                            <input
-                              :value="match.score1"
-                              type="text"
-                              class="field-input text-center font-bold text-lg"
-                              placeholder="11"
-                              @input="patchMatch(activeSection.id, match.id, 'score1', ($event.target as HTMLInputElement).value)"
-                            />
-                          </div>
-                        </div>
 
-                        <!-- VS -->
-                        <div class="flex items-center justify-center pb-1">
-                          <span class="text-xs font-black text-gray-300">VS</span>
+                      <!-- Category + Round + Time + Status -->
+                      <div class="grid grid-cols-2 gap-2">
+                        <div class="col-span-2">
+                          <label class="field-label">Category / Draw Name</label>
+                          <input
+                            :value="match.category"
+                            type="text"
+                            class="field-input"
+                            placeholder="e.g. Mixed Doubles Pro Main Draw"
+                            @input="patchMatch(activeSection.id, match.id, 'category', ($event.target as HTMLInputElement).value)"
+                          />
                         </div>
-
-                        <!-- Player 2 -->
-                        <div class="space-y-1.5">
-                          <div>
-                            <label class="field-label">Player 2 Name</label>
-                            <input
-                              :value="match.player2"
-                              type="text"
-                              class="field-input"
-                              placeholder="Full name"
-                              @input="patchMatch(activeSection.id, match.id, 'player2', ($event.target as HTMLInputElement).value)"
-                            />
-                          </div>
-                          <div>
-                            <label class="field-label">Score</label>
-                            <input
-                              :value="match.score2"
-                              type="text"
-                              class="field-input text-center font-bold text-lg"
-                              placeholder="9"
-                              @input="patchMatch(activeSection.id, match.id, 'score2', ($event.target as HTMLInputElement).value)"
-                            />
-                          </div>
+                        <div>
+                          <label class="field-label">Round</label>
+                          <input
+                            :value="match.round"
+                            type="text"
+                            class="field-input"
+                            placeholder="e.g. 1"
+                            @input="patchMatch(activeSection.id, match.id, 'round', ($event.target as HTMLInputElement).value)"
+                          />
                         </div>
-                      </div>
-
-                      <!-- Type + Status row -->
-                      <div class="grid grid-cols-2 gap-3">
+                        <div>
+                          <label class="field-label">Scheduled Time</label>
+                          <input
+                            :value="match.scheduledTime"
+                            type="text"
+                            class="field-input"
+                            placeholder="9:00 AM PDT"
+                            @input="patchMatch(activeSection.id, match.id, 'scheduledTime', ($event.target as HTMLInputElement).value)"
+                          />
+                        </div>
+                        <div>
+                          <label class="field-label">Status</label>
+                          <select
+                            :value="match.status"
+                            class="field-input"
+                            @change="patchMatch(activeSection.id, match.id, 'status', ($event.target as HTMLSelectElement).value)"
+                          >
+                            <option value="upcoming">Upcoming</option>
+                            <option value="ongoing">Live / Ongoing</option>
+                            <option value="finished">Finished</option>
+                          </select>
+                        </div>
                         <div>
                           <label class="field-label">Match Type</label>
                           <select
@@ -475,18 +478,60 @@
                             <option value="club">Club League</option>
                           </select>
                         </div>
-                        <div>
-                          <label class="field-label">Status</label>
-                          <select
-                            :value="match.status"
-                            class="field-input"
-                            @change="patchMatch(activeSection.id, match.id, 'status', ($event.target as HTMLSelectElement).value)"
-                          >
-                            <option value="finished">Finished</option>
-                            <option value="ongoing">Live / Ongoing</option>
-                          </select>
+                      </div>
+
+                      <!-- Players + Scores table -->
+                      <div class="border border-gray-100 rounded-lg overflow-hidden">
+                        <!-- Team 1 -->
+                        <div class="grid grid-cols-[1fr_1fr_72px] gap-2 items-end px-3 py-2.5 bg-gray-50 border-b border-gray-100">
+                          <div>
+                            <label class="field-label">Player 1</label>
+                            <input :value="match.player1" type="text" class="field-input" placeholder="Name"
+                              @input="patchMatch(activeSection.id, match.id, 'player1', ($event.target as HTMLInputElement).value)" />
+                          </div>
+                          <div>
+                            <label class="field-label">Partner <span class="text-gray-300">(doubles)</span></label>
+                            <input :value="match.player1b" type="text" class="field-input" placeholder="Optional"
+                              @input="patchMatch(activeSection.id, match.id, 'player1b', ($event.target as HTMLInputElement).value)" />
+                          </div>
+                          <div>
+                            <label class="field-label">Score</label>
+                            <input :value="match.score1" type="text" class="field-input text-center font-bold" placeholder="-"
+                              @input="patchMatch(activeSection.id, match.id, 'score1', ($event.target as HTMLInputElement).value)" />
+                          </div>
+                        </div>
+                        <!-- Team 2 -->
+                        <div class="grid grid-cols-[1fr_1fr_72px] gap-2 items-end px-3 py-2.5">
+                          <div>
+                            <label class="field-label">Player 2</label>
+                            <input :value="match.player2" type="text" class="field-input" placeholder="Name"
+                              @input="patchMatch(activeSection.id, match.id, 'player2', ($event.target as HTMLInputElement).value)" />
+                          </div>
+                          <div>
+                            <label class="field-label">Partner <span class="text-gray-300">(doubles)</span></label>
+                            <input :value="match.player2b" type="text" class="field-input" placeholder="Optional"
+                              @input="patchMatch(activeSection.id, match.id, 'player2b', ($event.target as HTMLInputElement).value)" />
+                          </div>
+                          <div>
+                            <label class="field-label">Score</label>
+                            <input :value="match.score2" type="text" class="field-input text-center font-bold" placeholder="-"
+                              @input="patchMatch(activeSection.id, match.id, 'score2', ($event.target as HTMLInputElement).value)" />
+                          </div>
                         </div>
                       </div>
+
+                      <!-- Details link -->
+                      <div>
+                        <label class="field-label">Details Link <span class="text-gray-300">(optional)</span></label>
+                        <input
+                          :value="match.matchLink"
+                          type="url"
+                          class="field-input"
+                          placeholder="https://..."
+                          @input="patchMatch(activeSection.id, match.id, 'matchLink', ($event.target as HTMLInputElement).value)"
+                        />
+                      </div>
+
                     </div>
                   </div>
                 </div>
@@ -572,8 +617,9 @@ function patchMatch(sectionId: string, matchId: string, field: keyof MatchItem, 
   ;(match as any)[field] = value
 }
 
-function matchTypeLabel(type: MatchItem['matchType']) {
-  return { local: 'Local', national: 'National', club: 'Club League' }[type]
+function matchTypeLabel(type: string) {
+  const map: Record<string, string> = { local: 'Local', national: 'National', club: 'Club League' }
+  return map[type] ?? type
 }
 
 function typeLabel(type: HomeSection['type']) {

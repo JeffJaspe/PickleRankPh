@@ -76,27 +76,27 @@
       </section>
 
       <!-- ─── FEATURED MATCHES ──────────────────────────────────────── -->
-      <section v-else-if="section.type === 'featured_matches'" class="py-20 px-4">
-        <div class="max-w-6xl mx-auto">
+      <section v-else-if="section.type === 'featured_matches'" class="py-16 px-4">
+        <div class="max-w-4xl mx-auto">
 
           <!-- Section heading -->
-          <div class="flex items-end justify-between mb-10">
+          <div class="flex items-end justify-between mb-6">
             <div>
-              <p class="text-xs font-bold text-brand-red uppercase tracking-widest mb-2">Featured</p>
-              <h2 class="text-3xl sm:text-4xl font-black text-brand-yellow uppercase tracking-wide leading-none">
+              <p class="text-xs font-bold text-brand-red uppercase tracking-widest mb-1">Featured</p>
+              <h2 class="text-2xl sm:text-3xl font-black text-brand-yellow uppercase tracking-wide leading-none">
                 {{ section.title }}
               </h2>
-              <p v-if="section.description" class="text-brand-yellow/50 text-sm mt-2">{{ section.description }}</p>
+              <p v-if="section.description" class="text-brand-yellow/50 text-sm mt-1">{{ section.description }}</p>
             </div>
             <a
               v-if="section.buttonText && section.buttonLink"
               :href="section.buttonLink"
               target="_blank"
               rel="noopener"
-              class="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-brand-yellow/50 hover:text-brand-yellow uppercase tracking-wider transition-colors"
+              class="flex items-center gap-1.5 text-xs font-semibold text-brand-yellow/50 hover:text-brand-yellow uppercase tracking-wider transition-colors"
             >
               {{ section.buttonText }}
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
               </svg>
             </a>
@@ -106,93 +106,124 @@
             No matches added yet.
           </div>
 
-          <!-- Match cards grid — 1 col mobile, 2 col desktop -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Match cards — bracket card style -->
+          <div class="space-y-2">
             <div
-              v-for="match in section.matches"
+              v-for="(match, mIdx) in section.matches"
               :key="match.id"
-              class="relative bg-brand-darker border border-brand-yellow/10 rounded-2xl overflow-hidden"
+              class="bg-brand-mid border border-brand-light/30 rounded-lg overflow-hidden"
             >
-              <!-- Glowing top bar for live matches -->
+              <!-- Live top stripe -->
               <div
                 v-if="match.status === 'ongoing'"
-                class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-green-400 to-transparent"
+                class="h-[2px] bg-gradient-to-r from-transparent via-green-400 to-transparent"
               />
 
-              <!-- Card header -->
-              <div class="flex items-center justify-between px-5 pt-4 pb-2">
-                <div class="flex items-center gap-2">
-                  <span
-                    v-if="match.status === 'ongoing'"
-                    class="flex items-center gap-1.5 text-xs font-bold text-green-400 uppercase tracking-widest"
-                  >
-                    <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                    LIVE
-                  </span>
-                  <span v-else class="text-xs font-semibold text-brand-yellow/30 uppercase tracking-widest">
-                    Finished
-                  </span>
-                </div>
-                <span class="text-xs font-bold text-brand-yellow/30 uppercase tracking-wider px-2 py-0.5 border border-brand-mid rounded-full">
-                  {{ matchTypeLabel(match.matchType) }}
+              <!-- Card header row -->
+              <div class="flex items-center justify-between px-4 py-2 bg-brand-darker border-b border-brand-light/20">
+                <span class="text-xs text-brand-yellow/60 font-medium">
+                  {{ match.category || matchTypeLabel(match.matchType) }}
                 </span>
-              </div>
-
-              <!-- Scoreboard -->
-              <div class="px-5 py-4">
-                <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-
-                  <!-- Player 1 -->
-                  <div class="text-center">
-                    <p class="text-sm font-bold text-brand-yellow/70 uppercase tracking-wide mb-2 truncate">
-                      {{ match.player1 || '—' }}
-                    </p>
-                    <p class="text-7xl sm:text-8xl font-black leading-none tabular-nums text-brand-yellow">
-                      {{ match.score1 || '0' }}
-                    </p>
-                  </div>
-
-                  <!-- VS divider -->
-                  <div class="flex flex-col items-center gap-1 px-2">
-                    <div class="w-px h-8 bg-brand-yellow/10" />
-                    <span class="text-xs font-black text-brand-yellow/20 tracking-widest">VS</span>
-                    <div class="w-px h-8 bg-brand-yellow/10" />
-                  </div>
-
-                  <!-- Player 2 -->
-                  <div class="text-center">
-                    <p class="text-sm font-bold text-brand-yellow/70 uppercase tracking-wide mb-2 truncate">
-                      {{ match.player2 || '—' }}
-                    </p>
-                    <p class="text-7xl sm:text-8xl font-black leading-none tabular-nums text-brand-yellow">
-                      {{ match.score2 || '0' }}
-                    </p>
-                  </div>
-
+                <div class="flex items-center gap-2 text-[11px] text-brand-yellow/40">
+                  <a
+                    v-if="match.matchLink"
+                    :href="match.matchLink"
+                    target="_blank"
+                    rel="noopener"
+                    class="text-brand-yellow/60 hover:text-brand-yellow underline underline-offset-2 transition-colors"
+                  >View Bracket</a>
+                  <span v-if="match.matchLink" class="text-brand-yellow/20">|</span>
+                  <span class="uppercase tracking-wider">{{ matchTypeLabel(match.matchType) }}</span>
+                  <span class="text-brand-yellow/20">|</span>
+                  <span>Match {{ mIdx + 1 }}</span>
                 </div>
               </div>
 
-              <!-- Card footer -->
-              <div class="px-5 pb-4">
-                <div class="h-px bg-brand-yellow/5 mb-3" />
-                <p class="text-[10px] text-brand-yellow/20 uppercase tracking-widest text-center">
-                  {{ match.status === 'ongoing' ? 'Match in progress' : 'Final score' }}
-                </p>
+              <!-- Body: players + info column -->
+              <div class="flex">
+
+                <!-- Players area -->
+                <div class="flex-1 min-w-0">
+
+                  <!-- Team 1 row -->
+                  <div class="flex items-stretch border-b border-brand-light/20">
+                    <div class="flex-1 min-w-0 px-4 py-3">
+                      <p class="text-sm font-semibold text-brand-yellow leading-tight">
+                        {{ match.player1 || '—' }}
+                      </p>
+                      <p v-if="match.player1b" class="text-sm font-semibold text-brand-yellow leading-tight mt-0.5">
+                        {{ match.player1b }}
+                      </p>
+                    </div>
+                    <!-- Score cell -->
+                    <div class="flex-shrink-0 w-14 border-l border-brand-light/20 flex items-center justify-center">
+                      <span
+                        :class="[
+                          'text-sm font-bold tabular-nums',
+                          match.status === 'finished' && match.score1 ? 'text-brand-yellow' : 'text-brand-yellow/30'
+                        ]"
+                      >
+                        {{ match.score1 || '-' }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Team 2 row -->
+                  <div class="flex items-stretch">
+                    <div class="flex-1 min-w-0 px-4 py-3">
+                      <p class="text-sm font-semibold text-brand-yellow leading-tight">
+                        {{ match.player2 || '—' }}
+                      </p>
+                      <p v-if="match.player2b" class="text-sm font-semibold text-brand-yellow leading-tight mt-0.5">
+                        {{ match.player2b }}
+                      </p>
+                    </div>
+                    <!-- Score cell -->
+                    <div class="flex-shrink-0 w-14 border-l border-brand-light/20 flex items-center justify-center">
+                      <span
+                        :class="[
+                          'text-sm font-bold tabular-nums',
+                          match.status === 'finished' && match.score2 ? 'text-brand-yellow' : 'text-brand-yellow/30'
+                        ]"
+                      >
+                        {{ match.score2 || '-' }}
+                      </span>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Info column -->
+                <div class="flex-shrink-0 w-32 sm:w-36 border-l border-brand-light/20 flex flex-col justify-center gap-1 px-4 py-3">
+                  <p v-if="match.round" class="text-xs text-brand-yellow/50">
+                    Round: <span class="font-semibold text-brand-yellow/70">{{ match.round }}</span>
+                  </p>
+                  <!-- Status -->
+                  <p
+                    :class="{
+                      'text-green-400 font-semibold': match.status === 'ongoing',
+                      'text-brand-yellow/40': match.status === 'upcoming',
+                      'text-brand-yellow/30': match.status === 'finished',
+                    }"
+                    class="text-xs flex items-center gap-1"
+                  >
+                    <span v-if="match.status === 'ongoing'" class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block" />
+                    {{ statusLabel(match.status) }}
+                  </p>
+                  <p v-if="match.scheduledTime" class="text-xs font-bold text-brand-yellow/70">
+                    {{ match.scheduledTime }}
+                  </p>
+                  <a
+                    v-if="match.matchLink"
+                    :href="match.matchLink"
+                    target="_blank"
+                    rel="noopener"
+                    class="text-xs text-brand-yellow/60 hover:text-brand-yellow underline underline-offset-2 transition-colors mt-1 inline-block"
+                  >See details</a>
+                </div>
+
               </div>
             </div>
-          </div>
-
-          <!-- Mobile CTA -->
-          <div class="sm:hidden mt-8 text-center">
-            <a
-              v-if="section.buttonText && section.buttonLink"
-              :href="section.buttonLink"
-              target="_blank"
-              rel="noopener"
-              class="inline-flex items-center gap-2 px-6 py-3 border border-brand-yellow/20 text-brand-yellow/60 hover:text-brand-yellow hover:border-brand-yellow font-semibold text-sm uppercase tracking-wider transition-colors"
-            >
-              {{ section.buttonText }}
-            </a>
           </div>
 
         </div>
@@ -289,5 +320,9 @@ const { visibleSections } = useHomeContent()
 
 function matchTypeLabel(type: MatchItem['matchType']) {
   return { local: 'Local', national: 'National', club: 'Club League' }[type]
+}
+
+function statusLabel(status: MatchItem['status']) {
+  return { upcoming: 'Upcoming', ongoing: 'Live', finished: 'Finished' }[status]
 }
 </script>
