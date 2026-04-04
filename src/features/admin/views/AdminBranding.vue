@@ -139,73 +139,99 @@
         <div class="border-t border-gray-100" />
 
         <!-- Background Image -->
-        <div>
-          <p class="text-xs font-semibold text-gray-600 mb-3">Home Background Image</p>
-          <div class="flex items-start gap-4">
-            <!-- Preview -->
-            <div class="w-28 h-18 rounded-lg border border-gray-200 bg-gray-50 flex-shrink-0 overflow-hidden relative"
-                 style="height: 4.5rem;">
-              <img
-                v-if="assets.bg_image_url"
-                :src="assets.bg_image_url"
-                alt="background"
-                class="w-full h-full object-cover"
-                :style="{ opacity: assets.bg_opacity }"
+        <div class="space-y-3">
+          <p class="text-xs font-semibold text-gray-600">Site Background Image</p>
+          <p class="text-xs text-gray-400 -mt-2">Shown behind all public pages (rankings, home, etc.)</p>
+
+          <!-- Full-width preview -->
+          <div class="w-full h-48 rounded-lg border border-gray-200 overflow-hidden relative"
+               :style="{ background: custom.secondary }">
+            <div
+              v-if="assets.bg_image_url"
+              class="absolute inset-0"
+              :style="{
+                backgroundImage: `url(${assets.bg_image_url})`,
+                backgroundSize: assets.bg_size === 'repeat' ? 'auto' : assets.bg_size,
+                backgroundRepeat: assets.bg_size === 'repeat' ? 'repeat' : 'no-repeat',
+                backgroundPosition: 'center',
+                opacity: assets.bg_opacity,
+              }"
+            />
+            <div v-if="!assets.bg_image_url" class="absolute inset-0 flex items-center justify-center">
+              <p class="text-xs text-gray-400">No background image</p>
+            </div>
+            <!-- Simulated content overlay -->
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <p class="text-sm font-black uppercase tracking-widest" :style="{ color: custom.accent, opacity: 0.6 }">Preview</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3">
+            <!-- Upload -->
+            <label
+              class="inline-flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-600
+                     hover:bg-gray-50 transition-colors cursor-pointer"
+              :class="{ 'opacity-50 cursor-not-allowed': bgUploading }"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              {{ bgUploading ? 'Uploading…' : 'Upload Image' }}
+              <input
+                type="file"
+                accept="image/*"
+                class="sr-only"
+                :disabled="bgUploading"
+                @change="handleBgUpload"
               />
-              <div v-else class="w-full h-full flex items-center justify-center">
-                <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+            </label>
+            <p v-if="bgError" class="text-xs text-red-500">{{ bgError }}</p>
+          </div>
+
+          <!-- Controls (only show when image exists) -->
+          <div v-if="assets.bg_image_url" class="space-y-4 pt-1">
+            <!-- Opacity -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-gray-600">Opacity</span>
+                <span class="text-xs font-mono text-gray-500">{{ Math.round(assets.bg_opacity * 100) }}%</span>
               </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                :value="Math.round(assets.bg_opacity * 100)"
+                @input="onOpacityInput"
+                class="w-full accent-indigo-600"
+              />
             </div>
 
-            <div class="space-y-3 flex-1">
-              <label
-                class="inline-flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-600
-                       hover:bg-gray-50 transition-colors cursor-pointer"
-                :class="{ 'opacity-50 cursor-not-allowed': bgUploading }"
-              >
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                {{ bgUploading ? 'Uploading…' : 'Upload PNG' }}
-                <input
-                  type="file"
-                  accept="image/png"
-                  class="sr-only"
-                  :disabled="bgUploading"
-                  @change="handleBgUpload"
-                />
-              </label>
-              <p class="text-xs text-gray-400">PNG only — displayed as full-page overlay on the home page</p>
-
-              <!-- Opacity slider -->
-              <div v-if="assets.bg_image_url" class="space-y-1.5">
-                <div class="flex items-center justify-between">
-                  <span class="text-xs font-medium text-gray-600">Opacity</span>
-                  <span class="text-xs font-mono text-gray-500">{{ Math.round(assets.bg_opacity * 100) }}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  :value="Math.round(assets.bg_opacity * 100)"
-                  @input="onOpacityInput"
-                  class="w-full accent-indigo-600"
-                />
+            <!-- Size -->
+            <div class="space-y-1.5">
+              <span class="text-xs font-medium text-gray-600">Size / Fit</span>
+              <div class="flex gap-2 mt-1">
                 <button
-                  @click="saveOpacity"
-                  :disabled="opacitySaving"
-                  class="text-xs px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400
-                         text-white font-medium rounded-lg transition-colors"
-                >
-                  {{ opacitySaving ? 'Saving…' : 'Save Opacity' }}
-                </button>
+                  v-for="opt in bgSizeOptions"
+                  :key="opt.value"
+                  @click="assets.bg_size = opt.value"
+                  :class="[
+                    'px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
+                    assets.bg_size === opt.value
+                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                  ]"
+                >{{ opt.label }}</button>
               </div>
-
-              <p v-if="bgError" class="text-xs text-red-500">{{ bgError }}</p>
             </div>
+
+            <button
+              @click="saveImageSettings"
+              :disabled="opacitySaving"
+              class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400
+                     text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              {{ opacitySaving ? 'Saving…' : 'Save Image Settings' }}
+            </button>
           </div>
         </div>
       </section>
@@ -217,8 +243,14 @@
           <!-- bg preview overlay -->
           <div
             v-if="assets.bg_image_url"
-            class="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none"
-            :style="{ backgroundImage: `url(${assets.bg_image_url})`, opacity: assets.bg_opacity }"
+            class="absolute inset-0 pointer-events-none"
+            :style="{
+              backgroundImage: `url(${assets.bg_image_url})`,
+              backgroundSize: assets.bg_size === 'repeat' ? 'auto' : assets.bg_size,
+              backgroundRepeat: assets.bg_size === 'repeat' ? 'repeat' : 'no-repeat',
+              backgroundPosition: 'center',
+              opacity: assets.bg_opacity,
+            }"
           />
           <div class="relative flex items-center justify-between">
             <span class="text-sm font-bold" :style="{ color: custom.accent }">PickleRank PH</span>
@@ -273,7 +305,13 @@ import type { Theme, SiteAssets } from '@/composables/useTheme'
 const { applyTheme, fetchTheme, persistTheme, fetchAssets, persistAssets, uploadBrandingFile, applyFavicon } = useTheme()
 
 const DEFAULT_THEME: Theme = { primary: '#FF4655', secondary: '#0F1923', accent: '#ECE8D9' }
-const DEFAULT_ASSETS: SiteAssets = { favicon_url: null, bg_image_url: null, bg_opacity: 0.15, storage_bucket: '' }
+const DEFAULT_ASSETS: SiteAssets = { favicon_url: null, bg_image_url: null, bg_opacity: 0.15, bg_size: 'cover', storage_bucket: '' }
+
+const bgSizeOptions: { label: string; value: SiteAssets['bg_size'] }[] = [
+  { label: 'Cover',   value: 'cover' },
+  { label: 'Contain', value: 'contain' },
+  { label: 'Repeat',  value: 'repeat' },
+]
 
 const custom = reactive<Theme>({ ...DEFAULT_THEME })
 const assets = reactive<SiteAssets>({ ...DEFAULT_ASSETS })
@@ -343,10 +381,10 @@ async function saveBucket() {
   }
 }
 
-async function saveOpacity() {
+async function saveImageSettings() {
   opacitySaving.value = true
   try {
-    await persistAssets({ bg_opacity: assets.bg_opacity })
+    await persistAssets({ bg_opacity: assets.bg_opacity, bg_size: assets.bg_size })
   } finally {
     opacitySaving.value = false
   }

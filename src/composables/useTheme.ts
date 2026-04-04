@@ -15,6 +15,7 @@ export interface SiteAssets {
   favicon_url: string | null
   bg_image_url: string | null
   bg_opacity: number
+  bg_size: 'cover' | 'contain' | 'repeat'
   storage_bucket: string
 }
 
@@ -138,7 +139,7 @@ export function useTheme() {
   async function fetchAssets(): Promise<SiteAssets | null> {
     const { data, error } = await supabase
       .from('site_settings')
-      .select('favicon_url, bg_image_url, bg_opacity, storage_bucket')
+      .select('favicon_url, bg_image_url, bg_opacity, bg_size, storage_bucket')
       .eq('id', SITE_SETTINGS_ID)
       .single()
     if (error || !data) return null
@@ -146,6 +147,7 @@ export function useTheme() {
       favicon_url: data.favicon_url ?? null,
       bg_image_url: data.bg_image_url ?? null,
       bg_opacity: data.bg_opacity ?? 0.15,
+      bg_size: data.bg_size ?? 'cover',
       storage_bucket: data.storage_bucket ?? '',
     }
     STORAGE_BUCKET = assets.storage_bucket
