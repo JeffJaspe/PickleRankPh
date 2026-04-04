@@ -169,11 +169,14 @@ export function useTheme() {
 
   async function uploadBrandingFile(file: File, path: string): Promise<string> {
     if (!STORAGE_BUCKET) throw new Error('Storage bucket not configured. Set it in the Branding settings.')
-    const { error } = await supabase.storage
+    console.log('[upload] bucket:', STORAGE_BUCKET, 'path:', path, 'file:', file.name, file.type, file.size)
+    const { data: uploadData, error } = await supabase.storage
       .from(STORAGE_BUCKET)
       .upload(path, file, { upsert: true, contentType: file.type })
-    if (error) throw error
+    console.log('[upload] result:', uploadData, error)
+    if (error) throw new Error(error.message)
     const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path)
+    console.log('[upload] public url:', data.publicUrl)
     return data.publicUrl
   }
 

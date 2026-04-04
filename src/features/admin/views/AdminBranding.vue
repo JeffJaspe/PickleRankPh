@@ -336,6 +336,7 @@ const colorFields: { key: keyof Theme; label: string; hint: string }[] = [
 
 onMounted(async () => {
   const [theme, siteAssets] = await Promise.all([fetchTheme(), fetchAssets()])
+  console.log('[branding] siteAssets:', siteAssets)
   if (theme) {
     Object.assign(custom, theme)
     activePreset.value = detectPreset(theme)
@@ -417,7 +418,8 @@ async function handleBgUpload(event: Event) {
   bgError.value = ''
   bgUploading.value = true
   try {
-    const url = await uploadBrandingFile(file, 'background/bg.png')
+    const ext = file.name.split('.').pop() ?? 'png'
+    const url = await uploadBrandingFile(file, `background/bg-${Date.now()}.${ext}`)
     await persistAssets({ bg_image_url: url })
     assets.bg_image_url = url
   } catch (err: any) {
