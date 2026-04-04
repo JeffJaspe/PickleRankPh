@@ -34,6 +34,7 @@ const router = createRouter({
         { path: 'tournaments', name: 'admin-tournaments', component: () => import('@/features/admin/views/AdminTournaments.vue') },
         { path: 'matches', name: 'admin-matches', component: () => import('@/features/admin/views/AdminMatches.vue') },
         { path: 'branding', name: 'admin-branding', component: () => import('@/features/admin/views/AdminBranding.vue') },
+        { path: 'footer', name: 'admin-footer', component: () => import('@/features/admin/views/AdminFooter.vue') },
       ],
     },
     {

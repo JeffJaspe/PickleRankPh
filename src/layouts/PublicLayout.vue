@@ -18,11 +18,16 @@
     <HeaderNav class="relative z-10" />
 
     <!-- Layer 3: centered content container — background visible on sides -->
-    <main class="relative z-10 mx-auto max-w-6xl px-4 min-h-screen">
-      <div class="bg-[var(--color-secondary)] min-h-full">
+    <main class="relative z-10 mx-auto max-w-[1400px] px-6 min-h-[calc(100vh-4rem)]">
+      <div class="bg-[var(--color-secondary)] min-h-[calc(100vh-4rem)]">
         <RouterView />
       </div>
     </main>
+
+    <!-- Layer 4: footer -->
+    <div class="relative z-10 mx-auto max-w-[1400px] px-6">
+      <SiteFooter />
+    </div>
   </div>
 </template>
 
@@ -30,6 +35,7 @@
 import { ref, onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import HeaderNav from '@/components/HeaderNav.vue'
+import SiteFooter from '@/components/SiteFooter.vue'
 import { useTheme } from '@/composables/useTheme'
 
 const { fetchAssets, loadCachedAssets } = useTheme()
@@ -46,7 +52,6 @@ onMounted(async () => {
     bgSize.value = cached.bg_size ?? 'cover'
   }
   const assets = await fetchAssets()
-  console.log('[PublicLayout] assets:', assets)
   if (assets?.bg_image_url) {
     bgImageUrl.value = assets.bg_image_url
     bgOpacity.value = assets.bg_opacity
