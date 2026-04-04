@@ -15,11 +15,13 @@ export interface SiteAssets {
   favicon_url: string | null
   bg_image_url: string | null
   bg_opacity: number
+  storage_bucket: string
 }
 
 const STORAGE_KEY = 'picklerank-theme'
 const ASSETS_KEY  = 'picklerank-assets'
 const SITE_SETTINGS_ID = 1
+let STORAGE_BUCKET = 'branding' // default; overridden by site_settings.storage_bucket
 
 export const PRESETS: Record<string, Preset> = {
   'dark-esports': {
@@ -123,7 +125,10 @@ export function useTheme() {
 
   function loadCachedAssets(): SiteAssets | null {
     const stored = localStorage.getItem(ASSETS_KEY)
-    return stored ? (JSON.parse(stored) as SiteAssets) : null
+    if (!stored) return null
+    const assets = JSON.parse(stored) as SiteAssets
+    if (assets.storage_bucket) STORAGE_BUCKET = assets.storage_bucket
+    return assets
   }
 
   function writeCachedAssets(assets: SiteAssets) {
@@ -133,7 +138,7 @@ export function useTheme() {
   async function fetchAssets(): Promise<SiteAssets | null> {
     const { data, error } = await supabase
       .from('site_settings')
-      .select('favicon_url, bg_image_url, bg_opacity')
+      .select('favicon_url, bg_image_url, bg_opacity, storage_bucket')
       .eq('id', SITE_SETTINGS_ID)
       .single()
     if (error || !data) return null
@@ -141,7 +146,9 @@ export function useTheme() {
       favicon_url: data.favicon_url ?? null,
       bg_image_url: data.bg_image_url ?? null,
       bg_opacity: data.bg_opacity ?? 0.15,
+      storage_bucket: data.storage_bucket ?? 'branding',
     }
+    STORAGE_BUCKET = assets.storage_bucket
     writeCachedAssets(assets)
     return assets
   }
@@ -159,10 +166,10 @@ export function useTheme() {
 
   async function uploadBrandingFile(file: File, path: string): Promise<string> {
     const { error } = await supabase.storage
-      .from('branding')
+      .from(STORAGE_BUCKET)
       .upload(path, file, { upsert: true, contentType: file.type })
     if (error) throw error
-    const { data } = supabase.storage.from('branding').getPublicUrl(path)
+    const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path)
     return data.publicUrl
   }
 

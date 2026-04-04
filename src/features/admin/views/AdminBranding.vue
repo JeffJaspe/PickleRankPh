@@ -71,6 +71,29 @@
       <section class="bg-white border border-gray-200 rounded-xl p-6 space-y-6">
         <h3 class="text-sm font-semibold text-gray-700">Site Assets</h3>
 
+        <!-- Storage Bucket -->
+        <div>
+          <p class="text-xs font-semibold text-gray-600 mb-2">Storage Bucket</p>
+          <div class="flex items-center gap-2">
+            <input
+              v-model="assets.storage_bucket"
+              type="text"
+              placeholder="branding"
+              class="w-48 px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-mono text-gray-700
+                     focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+            <button
+              @click="saveBucket"
+              :disabled="bucketSaving"
+              class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400
+                     text-white text-xs font-medium rounded-lg transition-colors"
+            >{{ bucketSaving ? 'Saving…' : 'Save' }}</button>
+          </div>
+          <p class="mt-1 text-xs text-gray-400">Must match your Supabase Storage bucket name exactly.</p>
+        </div>
+
+        <div class="border-t border-gray-100" />
+
         <!-- Favicon -->
         <div>
           <p class="text-xs font-semibold text-gray-600 mb-3">Favicon</p>
@@ -250,7 +273,7 @@ import type { Theme, SiteAssets } from '@/composables/useTheme'
 const { applyTheme, fetchTheme, persistTheme, fetchAssets, persistAssets, uploadBrandingFile, applyFavicon } = useTheme()
 
 const DEFAULT_THEME: Theme = { primary: '#FF4655', secondary: '#0F1923', accent: '#ECE8D9' }
-const DEFAULT_ASSETS: SiteAssets = { favicon_url: null, bg_image_url: null, bg_opacity: 0.15 }
+const DEFAULT_ASSETS: SiteAssets = { favicon_url: null, bg_image_url: null, bg_opacity: 0.15, storage_bucket: 'branding' }
 
 const custom = reactive<Theme>({ ...DEFAULT_THEME })
 const assets = reactive<SiteAssets>({ ...DEFAULT_ASSETS })
@@ -265,6 +288,7 @@ const faviconError = ref('')
 const bgUploading = ref(false)
 const bgError = ref('')
 const opacitySaving = ref(false)
+const bucketSaving = ref(false)
 
 const colorFields: { key: keyof Theme; label: string; hint: string }[] = [
   { key: 'primary',   label: 'Primary',   hint: 'Buttons, highlights' },
@@ -307,6 +331,15 @@ function onColorInput(key: keyof Theme, value: string) {
 
 function onOpacityInput(e: Event) {
   assets.bg_opacity = parseInt((e.target as HTMLInputElement).value) / 100
+}
+
+async function saveBucket() {
+  bucketSaving.value = true
+  try {
+    await persistAssets({ storage_bucket: assets.storage_bucket })
+  } finally {
+    bucketSaving.value = false
+  }
 }
 
 async function saveOpacity() {
