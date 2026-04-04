@@ -6,7 +6,8 @@
       "Bash(node -e \"const src = require\\('fs'\\).readFileSync\\('c:/Users/jeffr/Documents/GitHub/PickleRankPh/node_modules/pinia-plugin-persistedstate/dist/index.cjs','utf8'\\); console.log\\(src.slice\\(0,2000\\)\\)\")",
       "Bash(node -e \"const src = require\\('fs'\\).readFileSync\\('c:/Users/jeffr/Documents/GitHub/PickleRankPh/node_modules/pinia-plugin-persistedstate/dist/index.cjs','utf8'\\); const match = src.match\\(/paths|pick/g\\); console.log\\([...new Set\\(match\\)]\\)\")",
       "Bash(node -e \"const src = require\\('fs'\\).readFileSync\\('c:/Users/jeffr/Documents/GitHub/PickleRankPh/node_modules/pinia-plugin-persistedstate/dist/index.cjs','utf8'\\); console.log\\(src.slice\\(2000, 4000\\)\\)\")",
-      "Bash(grep -n \"persist\" src/stores/*.ts)"
+      "Bash(grep -n \"persist\" src/stores/*.ts)",
+      "WebFetch(domain:www.pickleball.ph)"
     ]
   }
 }
