@@ -8,7 +8,7 @@ const router = createRouter({
       path: '/',
       component: () => import('@/layouts/PublicLayout.vue'),
       children: [
-        { path: '', name: 'home', meta: { label: 'Home' }, component: () => import('@/features/common/views/PlaceholderView.vue') },
+        { path: '', name: 'home', meta: { label: 'Home' }, component: () => import('@/features/home/views/HomeView.vue') },
         { path: 'rankings', redirect: '/rankings/official' },
         { path: 'rankings/official', name: 'rankings-official', component: () => import('@/features/rankings/views/RankingsView.vue') },
         { path: 'rankings/amateur', name: 'rankings-amateur', meta: { label: 'Amateur (Community)' }, component: () => import('@/features/common/views/PlaceholderView.vue') },
@@ -35,6 +35,7 @@ const router = createRouter({
         { path: 'matches', name: 'admin-matches', component: () => import('@/features/admin/views/AdminMatches.vue') },
         { path: 'branding', name: 'admin-branding', component: () => import('@/features/admin/views/AdminBranding.vue') },
         { path: 'footer', name: 'admin-footer', component: () => import('@/features/admin/views/AdminFooter.vue') },
+        { path: 'home-content', name: 'admin-home-content', component: () => import('@/features/admin/views/AdminHomeContent.vue') },
       ],
     },
     {
