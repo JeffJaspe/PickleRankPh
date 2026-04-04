@@ -1,12 +1,12 @@
 <template>
-  <header class="sticky top-0 z-50 bg-[#0f0f14] border-b border-white/10 shadow-lg shadow-black/40">
+  <header class="sticky top-0 z-50 border-b border-white/10 shadow-lg shadow-black/40" :style="{ background: 'var(--color-secondary)' }">
     <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
 
         <!-- Logo -->
         <RouterLink to="/" class="flex items-center gap-2 shrink-0 group">
-          <span class="text-xl font-black tracking-widest uppercase text-white group-hover:text-[#ff4655] transition-colors duration-200">
-            Pickle<span class="text-[#ff4655]">Rank</span>
+          <span class="logo-text text-xl font-black tracking-widest uppercase text-white transition-colors duration-200">
+            Pickle<span class="logo-primary">Rank</span>
           </span>
           <span class="text-[10px] font-bold tracking-widest text-white/30 uppercase mt-1">PH</span>
         </RouterLink>
@@ -49,7 +49,8 @@
               <Transition name="dropdown">
                 <ul
                   v-if="activeDropdown === item.label"
-                  class="absolute top-full left-0 mt-1 w-52 bg-[#16161e] border border-white/10 shadow-xl shadow-black/60 py-1"
+                  class="absolute top-full left-0 mt-1 w-52 border border-white/10 shadow-xl shadow-black/60 py-1"
+                  :style="{ background: 'var(--color-secondary)' }"
                 >
                   <li v-for="child in item.children" :key="child.label">
                     <RouterLink
@@ -58,7 +59,7 @@
                       :class="{ 'dropdown-item--active': $route.path === child.to }"
                       @click="closeDropdown"
                     >
-                      <span class="w-1 h-1 rounded-full bg-[#ff4655]"></span>
+                      <span class="w-1 h-1 rounded-full" :style="{ background: 'var(--color-primary)' }"></span>
                       {{ child.label }}
                     </RouterLink>
                   </li>
@@ -107,7 +108,7 @@
 
     <!-- Mobile menu -->
     <Transition name="mobile-menu">
-      <div v-if="mobileOpen" class="md:hidden bg-[#0f0f14] border-t border-white/10">
+      <div v-if="mobileOpen" class="md:hidden border-t border-white/10" :style="{ background: 'var(--color-secondary)' }">
         <ul class="px-4 py-3 space-y-1">
           <li v-for="item in navItems" :key="item.label">
 
@@ -231,7 +232,8 @@ function toggleMobileAccordion(label: string) {
 
 .nav-link::after {
   content: '';
-  @apply absolute bottom-0 left-3 right-3 h-0.5 bg-[#ff4655] scale-x-0 transition-transform duration-200 origin-left;
+  @apply absolute bottom-0 left-3 right-3 h-0.5 scale-x-0 transition-transform duration-200 origin-left;
+  background-color: var(--color-primary);
 }
 
 .nav-link:hover::after,
@@ -248,7 +250,8 @@ function toggleMobileAccordion(label: string) {
 }
 
 .dropdown-item--active {
-  @apply text-[#ff4655] bg-[#ff4655]/5;
+  color: var(--color-primary);
+  background-color: color-mix(in srgb, var(--color-primary) 8%, transparent);
 }
 
 .mobile-link {
@@ -279,6 +282,14 @@ function toggleMobileAccordion(label: string) {
   @apply opacity-0 -translate-y-2;
 }
 
+/* Logo */
+.logo-primary {
+  color: var(--color-primary);
+}
+.group:hover .logo-text {
+  color: var(--color-primary);
+}
+
 /* Secret admin gate — barely there, no label, no tooltip */
 .secret-gate {
   color: rgba(255, 255, 255, 0.20);
@@ -287,7 +298,7 @@ function toggleMobileAccordion(label: string) {
   cursor: default;
 }
 .secret-gate:hover {
-  color: #ff4655;
+  color: var(--color-primary);
   opacity: 1;
   cursor: pointer;
   transform: scale(1.15);

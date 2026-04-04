@@ -2,14 +2,14 @@
   <div class="flex flex-col items-center justify-center min-h-[70vh] gap-6 select-none">
     <div class="logo-enter flex items-end gap-3">
       <span class="text-5xl sm:text-7xl font-black tracking-widest uppercase text-white leading-none">
-        Pickle<span class="text-[#ff4655]">Rank</span>
+        Pickle<span :style="{ color: 'var(--color-primary)' }">Rank</span>
       </span>
       <span class="text-base sm:text-xl font-black tracking-widest text-white/20 uppercase pb-1">PH</span>
     </div>
-    <div class="bar-enter w-24 h-0.5 bg-[#ff4655]"></div>
+    <div class="bar-enter w-24 h-0.5" :style="{ background: 'var(--color-primary)' }"></div>
     <div class="text-enter flex flex-col items-center gap-2">
       <p class="text-xs font-bold tracking-[0.4em] uppercase text-white/30">Coming Soon</p>
-      <p v-if="label" class="text-sm font-bold tracking-widest uppercase text-[#ff4655]/70">{{ label }}</p>
+      <p v-if="label" class="text-sm font-bold tracking-widest uppercase" :style="{ color: 'color-mix(in srgb, var(--color-primary) 70%, transparent)' }">{{ label }}</p>
     </div>
   </div>
 </template>

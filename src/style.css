@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 * { box-sizing: border-box; }
-body { margin: 0; background: #0F1923; color: #ECE8D9; }
+body { margin: 0; background: var(--color-secondary); color: var(--color-accent); }
 
 /* Site-wide theme variables — updated by AdminBranding via useTheme.ts */
 :root {

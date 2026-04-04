@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#0a0a0f] text-white">
+  <div class="min-h-screen text-white" :style="{ background: 'var(--color-secondary)', color: 'var(--color-accent)' }">
     <HeaderNav />
     <main>
       <RouterView />
