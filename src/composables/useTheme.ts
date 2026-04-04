@@ -11,9 +11,14 @@ export interface Preset {
   theme: Theme
 }
 
-const STORAGE_KEY = 'picklerank-theme'
+export interface SiteAssets {
+  favicon_url: string | null
+  bg_image_url: string | null
+  bg_opacity: number
+}
 
-// Maps our Theme keys → actual site_settings column names
+const STORAGE_KEY = 'picklerank-theme'
+const ASSETS_KEY  = 'picklerank-assets'
 const SITE_SETTINGS_ID = 1
 
 export const PRESETS: Record<string, Preset> = {
@@ -53,46 +58,37 @@ function shadeRgbChannels(hex: string, offset: number): string {
 }
 
 export function useTheme() {
-  /** Apply CSS variables immediately — no async */
+  // ── Theme ──────────────────────────────────────────────────────────────────
+
   function applyTheme(theme: Theme) {
     const root = document.documentElement
     root.style.setProperty('--color-primary', theme.primary)
     root.style.setProperty('--color-secondary', theme.secondary)
     root.style.setProperty('--color-accent', theme.accent)
-    // RGB channel versions for Tailwind opacity modifiers
     root.style.setProperty('--color-primary-rgb', hexToRgbChannels(theme.primary))
     root.style.setProperty('--color-secondary-rgb', hexToRgbChannels(theme.secondary))
     root.style.setProperty('--color-accent-rgb', hexToRgbChannels(theme.accent))
-    // Secondary shade variants (darker / mid / light)
     root.style.setProperty('--color-darker-rgb', shadeRgbChannels(theme.secondary, -5))
     root.style.setProperty('--color-mid-rgb', shadeRgbChannels(theme.secondary, 16))
     root.style.setProperty('--color-light-rgb', shadeRgbChannels(theme.secondary, 27))
   }
 
-  /** Read from localStorage cache (synchronous, for instant paint) */
   function loadCached(): Theme | null {
     const stored = localStorage.getItem(STORAGE_KEY)
     return stored ? (JSON.parse(stored) as Theme) : null
   }
 
-  /** Write to localStorage cache */
   function writeCache(theme: Theme) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(theme))
   }
 
-  /**
-   * Fetch from the existing site_settings table.
-   * Maps flat columns → Theme shape.
-   */
   async function fetchTheme(): Promise<Theme | null> {
     const { data, error } = await supabase
       .from('site_settings')
       .select('primary_color, secondary_color, accent_color')
       .eq('id', SITE_SETTINGS_ID)
       .single()
-
     if (error || !data) return null
-
     const theme: Theme = {
       primary: data.primary_color ?? '#FF4655',
       secondary: data.secondary_color ?? '#0F1923',
@@ -102,37 +98,92 @@ export function useTheme() {
     return theme
   }
 
-  /**
-   * Update the site_settings row with new colors.
-   * Uses update (row must already exist — insert a seed row if empty).
-   */
   async function persistTheme(theme: Theme): Promise<void> {
     const { error } = await supabase
       .from('site_settings')
-      .update({
-        primary_color: theme.primary,
-        secondary_color: theme.secondary,
-        accent_color: theme.accent,
-      })
+      .update({ primary_color: theme.primary, secondary_color: theme.secondary, accent_color: theme.accent })
       .eq('id', SITE_SETTINGS_ID)
-
     if (error) throw error
     writeCache(theme)
     applyTheme(theme)
   }
 
-  /**
-   * Called on app boot (App.vue onMounted).
-   * 1. Apply localStorage cache immediately for instant paint.
-   * 2. Fetch from DB and re-apply if different.
-   */
-  async function initTheme(): Promise<void> {
-    const cached = loadCached()
-    if (cached) applyTheme(cached)
+  // ── Assets ─────────────────────────────────────────────────────────────────
 
-    const dbTheme = await fetchTheme()
-    if (dbTheme) applyTheme(dbTheme)
+  function applyFavicon(url: string | null) {
+    if (!url) return
+    let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']")
+    if (!link) {
+      link = document.createElement('link')
+      link.rel = 'icon'
+      document.head.appendChild(link)
+    }
+    link.href = url + '?t=' + Date.now()
   }
 
-  return { applyTheme, fetchTheme, persistTheme, loadCached, initTheme, PRESETS }
+  function loadCachedAssets(): SiteAssets | null {
+    const stored = localStorage.getItem(ASSETS_KEY)
+    return stored ? (JSON.parse(stored) as SiteAssets) : null
+  }
+
+  function writeCachedAssets(assets: SiteAssets) {
+    localStorage.setItem(ASSETS_KEY, JSON.stringify(assets))
+  }
+
+  async function fetchAssets(): Promise<SiteAssets | null> {
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('favicon_url, bg_image_url, bg_opacity')
+      .eq('id', SITE_SETTINGS_ID)
+      .single()
+    if (error || !data) return null
+    const assets: SiteAssets = {
+      favicon_url: data.favicon_url ?? null,
+      bg_image_url: data.bg_image_url ?? null,
+      bg_opacity: data.bg_opacity ?? 0.15,
+    }
+    writeCachedAssets(assets)
+    return assets
+  }
+
+  async function persistAssets(patch: Partial<SiteAssets>): Promise<void> {
+    const { error } = await supabase
+      .from('site_settings')
+      .update(patch)
+      .eq('id', SITE_SETTINGS_ID)
+    if (error) throw error
+    // Refresh cache
+    const current = loadCachedAssets()
+    if (current) writeCachedAssets({ ...current, ...patch })
+  }
+
+  async function uploadBrandingFile(file: File, path: string): Promise<string> {
+    const { error } = await supabase.storage
+      .from('branding')
+      .upload(path, file, { upsert: true, contentType: file.type })
+    if (error) throw error
+    const { data } = supabase.storage.from('branding').getPublicUrl(path)
+    return data.publicUrl
+  }
+
+  // ── Boot ───────────────────────────────────────────────────────────────────
+
+  async function initTheme(): Promise<void> {
+    // Apply caches immediately for instant paint
+    const cachedTheme = loadCached()
+    if (cachedTheme) applyTheme(cachedTheme)
+    const cachedAssets = loadCachedAssets()
+    if (cachedAssets?.favicon_url) applyFavicon(cachedAssets.favicon_url)
+
+    // Fetch fresh from DB and re-apply
+    const [dbTheme, assets] = await Promise.all([fetchTheme(), fetchAssets()])
+    if (dbTheme) applyTheme(dbTheme)
+    if (assets?.favicon_url) applyFavicon(assets.favicon_url)
+  }
+
+  return {
+    applyTheme, fetchTheme, persistTheme, loadCached, initTheme,
+    applyFavicon, fetchAssets, persistAssets, uploadBrandingFile, loadCachedAssets,
+    PRESETS,
+  }
 }
