@@ -165,6 +165,7 @@ export function useTheme() {
   }
 
   async function uploadBrandingFile(file: File, path: string): Promise<string> {
+    if (!STORAGE_BUCKET) throw new Error('Storage bucket not configured. Set it in the Branding settings.')
     const { error } = await supabase.storage
       .from(STORAGE_BUCKET)
       .upload(path, file, { upsert: true, contentType: file.type })
