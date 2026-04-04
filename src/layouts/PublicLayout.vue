@@ -1,20 +1,27 @@
 <template>
-  <div class="relative min-h-screen text-white" :style="{ background: 'var(--color-secondary)', color: 'var(--color-accent)' }">
-    <!-- Site-wide background image -->
+  <!-- Layer 1: background image fills full viewport -->
+  <div class="min-h-screen relative" :style="{ color: 'var(--color-accent)' }">
     <div
       v-if="bgImageUrl"
-      class="fixed inset-0 pointer-events-none z-0"
+      class="fixed inset-0 z-0 pointer-events-none"
       :style="{
         backgroundImage: `url(${bgImageUrl})`,
         backgroundSize: bgSize === 'repeat' ? 'auto' : bgSize,
         backgroundRepeat: bgSize === 'repeat' ? 'repeat' : 'no-repeat',
         backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
         opacity: bgOpacity,
       }"
     />
+
+    <!-- Layer 2: nav spans full width with theme color -->
     <HeaderNav class="relative z-10" />
-    <main class="relative z-10">
-      <RouterView />
+
+    <!-- Layer 3: centered content container — background visible on sides -->
+    <main class="relative z-10 mx-auto max-w-6xl px-4 min-h-screen">
+      <div class="bg-[var(--color-secondary)] min-h-full">
+        <RouterView />
+      </div>
     </main>
   </div>
 </template>
@@ -33,13 +40,14 @@ const bgSize = ref<'cover' | 'contain' | 'repeat'>('cover')
 
 onMounted(async () => {
   const cached = loadCachedAssets()
-  if (cached) {
+  if (cached?.bg_image_url) {
     bgImageUrl.value = cached.bg_image_url
     bgOpacity.value = cached.bg_opacity
     bgSize.value = cached.bg_size ?? 'cover'
   }
   const assets = await fetchAssets()
-  if (assets) {
+  console.log('[PublicLayout] assets:', assets)
+  if (assets?.bg_image_url) {
     bgImageUrl.value = assets.bg_image_url
     bgOpacity.value = assets.bg_opacity
     bgSize.value = assets.bg_size ?? 'cover'
