@@ -12,7 +12,6 @@ export interface UpdateUserPayload {
   password?: string
 }
 
-/** Gets the current session bearer token to authorize admin API calls */
 async function authHeaders(): Promise<HeadersInit> {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) throw new Error('Not authenticated')
@@ -22,52 +21,40 @@ async function authHeaders(): Promise<HeadersInit> {
   }
 }
 
+/** Safely parse error from response — handles both JSON and plain text */
+async function parseError(res: Response, fallback: string): Promise<string> {
+  const text = await res.text()
+  try {
+    const json = JSON.parse(text)
+    return json.error ?? fallback
+  } catch {
+    return text || fallback
+  }
+}
+
 export async function listUsers(): Promise<User[]> {
   const headers = await authHeaders()
   const res = await fetch('/api/admin/users', { headers })
-  if (!res.ok) {
-    const { error } = await res.json()
-    throw new Error(error ?? 'Failed to fetch users')
-  }
+  if (!res.ok) throw new Error(await parseError(res, 'Failed to fetch users'))
   return res.json()
 }
 
 export async function createUser(payload: CreateUserPayload): Promise<User> {
   const headers = await authHeaders()
-  const res = await fetch('/api/admin/users', {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(payload),
-  })
-  if (!res.ok) {
-    const { error } = await res.json()
-    throw new Error(error ?? 'Failed to create user')
-  }
+  const res = await fetch('/api/admin/users', { method: 'POST', headers, body: JSON.stringify(payload) })
+  if (!res.ok) throw new Error(await parseError(res, 'Failed to create user'))
   return res.json()
 }
 
 export async function updateUser(id: string, payload: UpdateUserPayload): Promise<User> {
   const headers = await authHeaders()
-  const res = await fetch(`/api/admin/users/${id}`, {
-    method: 'PUT',
-    headers,
-    body: JSON.stringify(payload),
-  })
-  if (!res.ok) {
-    const { error } = await res.json()
-    throw new Error(error ?? 'Failed to update user')
-  }
+  const res = await fetch(`/api/admin/users/${id}`, { method: 'PUT', headers, body: JSON.stringify(payload) })
+  if (!res.ok) throw new Error(await parseError(res, 'Failed to update user'))
   return res.json()
 }
 
 export async function deleteUser(id: string): Promise<void> {
   const headers = await authHeaders()
-  const res = await fetch(`/api/admin/users/${id}`, {
-    method: 'DELETE',
-    headers,
-  })
-  if (!res.ok) {
-    const { error } = await res.json()
-    throw new Error(error ?? 'Failed to delete user')
-  }
+  const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE', headers })
+  if (!res.ok) throw new Error(await parseError(res, 'Failed to delete user'))
 }
