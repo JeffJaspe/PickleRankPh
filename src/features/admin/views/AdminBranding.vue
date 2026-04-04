@@ -273,7 +273,7 @@ import type { Theme, SiteAssets } from '@/composables/useTheme'
 const { applyTheme, fetchTheme, persistTheme, fetchAssets, persistAssets, uploadBrandingFile, applyFavicon } = useTheme()
 
 const DEFAULT_THEME: Theme = { primary: '#FF4655', secondary: '#0F1923', accent: '#ECE8D9' }
-const DEFAULT_ASSETS: SiteAssets = { favicon_url: null, bg_image_url: null, bg_opacity: 0.15, storage_bucket: 'branding' }
+const DEFAULT_ASSETS: SiteAssets = { favicon_url: null, bg_image_url: null, bg_opacity: 0.15, storage_bucket: '' }
 
 const custom = reactive<Theme>({ ...DEFAULT_THEME })
 const assets = reactive<SiteAssets>({ ...DEFAULT_ASSETS })
@@ -336,6 +336,7 @@ function onOpacityInput(e: Event) {
 async function saveBucket() {
   bucketSaving.value = true
   try {
+    assets.storage_bucket = assets.storage_bucket.trim()
     await persistAssets({ storage_bucket: assets.storage_bucket })
   } finally {
     bucketSaving.value = false

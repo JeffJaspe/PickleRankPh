@@ -21,7 +21,7 @@ export interface SiteAssets {
 const STORAGE_KEY = 'picklerank-theme'
 const ASSETS_KEY  = 'picklerank-assets'
 const SITE_SETTINGS_ID = 1
-let STORAGE_BUCKET = 'branding' // default; overridden by site_settings.storage_bucket
+let STORAGE_BUCKET = '' // set from site_settings.storage_bucket on load
 
 export const PRESETS: Record<string, Preset> = {
   'dark-esports': {
@@ -146,7 +146,7 @@ export function useTheme() {
       favicon_url: data.favicon_url ?? null,
       bg_image_url: data.bg_image_url ?? null,
       bg_opacity: data.bg_opacity ?? 0.15,
-      storage_bucket: data.storage_bucket ?? 'branding',
+      storage_bucket: data.storage_bucket ?? '',
     }
     STORAGE_BUCKET = assets.storage_bucket
     writeCachedAssets(assets)
