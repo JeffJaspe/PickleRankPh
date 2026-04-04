@@ -11,6 +11,17 @@
       </button>
     </div>
 
+    <!-- Search -->
+    <div class="mb-4">
+      <input
+        v-model="search"
+        type="text"
+        placeholder="Search by email…"
+        class="w-full sm:w-72 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700
+               focus:outline-none focus:ring-2 focus:ring-indigo-400"
+      />
+    </div>
+
     <!-- Table card -->
     <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
       <!-- Error banner -->
@@ -42,14 +53,14 @@
           </template>
 
           <!-- Empty state -->
-          <tr v-else-if="users.length === 0">
+          <tr v-else-if="filteredUsers.length === 0">
             <td colspan="4" class="px-6 py-12 text-center text-sm text-gray-400">
-              No users found. Add the first admin.
+              {{ search ? 'No users match your search.' : 'No users found. Add the first admin.' }}
             </td>
           </tr>
 
           <!-- User rows -->
-          <tr v-else v-for="user in users" :key="user.id" class="hover:bg-gray-50 transition-colors">
+          <tr v-else v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50 transition-colors">
             <td class="px-6 py-4 font-medium text-gray-900">{{ user.email }}</td>
             <td class="px-6 py-4">
               <span
@@ -255,6 +266,13 @@ import { listUsers, createUser, updateUser, deleteUser } from '@/services/api/ad
 const users = ref<User[]>([])
 const loading = ref(true)
 const fetchError = ref('')
+const search = ref('')
+
+const filteredUsers = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  if (!q) return users.value
+  return users.value.filter(u => u.email.toLowerCase().includes(q))
+})
 
 const modal = reactive({
   open: false,
