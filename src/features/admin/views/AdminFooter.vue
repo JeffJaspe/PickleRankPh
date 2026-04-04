@@ -101,23 +101,60 @@
           />
         </div>
 
-        <!-- URL -->
+        <!-- URL / Upload -->
         <div>
           <label class="block text-xs font-medium text-gray-600 mb-1">
-            {{ modal.type === 'image' ? 'Image URL' : 'Link URL' }}
+            {{ modal.type === 'image' ? 'Image' : 'Link URL' }}
           </label>
-          <input
-            v-model="modal.url"
-            type="url"
-            placeholder="https://..."
-            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          />
-          <!-- Image preview -->
-          <img
-            v-if="modal.type === 'image' && modal.url"
-            :src="modal.url"
-            class="mt-2 h-12 object-contain rounded border border-gray-200"
-          />
+
+          <!-- Image: upload button + optional URL override -->
+          <template v-if="modal.type === 'image'">
+            <div class="space-y-2">
+              <!-- Upload -->
+              <label
+                class="inline-flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+                :class="{ 'opacity-50 cursor-not-allowed': modal.uploading }"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                {{ modal.uploading ? 'Uploading…' : 'Upload Image' }}
+                <input
+                  type="file"
+                  accept="image/*"
+                  class="sr-only"
+                  :disabled="modal.uploading"
+                  @change="handleImageUpload"
+                />
+              </label>
+              <p v-if="modal.uploadError" class="text-xs text-red-500">{{ modal.uploadError }}</p>
+
+              <!-- Preview -->
+              <img
+                v-if="modal.url"
+                :src="modal.url"
+                class="h-14 object-contain rounded border border-gray-200"
+              />
+
+              <!-- URL shown read-only after upload, editable for manual entry -->
+              <input
+                v-model="modal.url"
+                type="url"
+                placeholder="or paste image URL…"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+            </div>
+          </template>
+
+          <!-- Link: plain URL input -->
+          <template v-else>
+            <input
+              v-model="modal.url"
+              type="url"
+              placeholder="https://..."
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+          </template>
         </div>
 
         <!-- Sort order -->
@@ -154,9 +191,11 @@
 <script setup lang="ts">
 import { reactive, onMounted } from 'vue'
 import { useFooterStore } from '@/stores/footer'
+import { useTheme } from '@/composables/useTheme'
 import type { FooterItem } from '@/stores/footer'
 
 const store = useFooterStore()
+const { uploadBrandingFile } = useTheme()
 
 onMounted(() => store.fetch())
 
@@ -170,6 +209,8 @@ const modal = reactive({
   sort_order: 0,
   saving: false,
   error: '',
+  uploading: false,
+  uploadError: '',
 })
 
 function openAdd() {
@@ -219,6 +260,24 @@ async function save() {
     modal.error = err.message ?? 'Failed to save.'
   } finally {
     modal.saving = false
+  }
+}
+
+async function handleImageUpload(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  modal.uploadError = ''
+  modal.uploading = true
+  try {
+    const ext = file.name.split('.').pop() ?? 'png'
+    const url = await uploadBrandingFile(file, `footer/img-${Date.now()}.${ext}`)
+    modal.url = url
+  } catch (err: any) {
+    modal.uploadError = err?.message ?? 'Upload failed'
+  } finally {
+    modal.uploading = false
+    input.value = ''
   }
 }
 
