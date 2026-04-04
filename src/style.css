@@ -9,4 +9,12 @@ body { margin: 0; background: var(--color-secondary); color: var(--color-accent)
   --color-primary: #FF4655;
   --color-secondary: #0F1923;
   --color-accent: #ECE8D9;
+  /* RGB channel versions for Tailwind opacity modifiers (e.g. text-brand-red/40) */
+  --color-primary-rgb: 255 70 85;
+  --color-secondary-rgb: 15 25 35;
+  --color-accent-rgb: 236 232 217;
+  /* Secondary shade variants */
+  --color-darker-rgb: 10 20 30;
+  --color-mid-rgb: 31 41 51;
+  --color-light-rgb: 42 52 62;
 }

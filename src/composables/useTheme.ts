@@ -35,6 +35,23 @@ export const PRESETS: Record<string, Preset> = {
   },
 }
 
+function hexToRgbChannels(hex: string): string {
+  const h = hex.replace('#', '')
+  const r = parseInt(h.slice(0, 2), 16)
+  const g = parseInt(h.slice(2, 4), 16)
+  const b = parseInt(h.slice(4, 6), 16)
+  return `${r} ${g} ${b}`
+}
+
+function shadeRgbChannels(hex: string, offset: number): string {
+  const h = hex.replace('#', '')
+  const clamp = (n: number) => Math.min(255, Math.max(0, n))
+  const r = clamp(parseInt(h.slice(0, 2), 16) + offset)
+  const g = clamp(parseInt(h.slice(2, 4), 16) + offset)
+  const b = clamp(parseInt(h.slice(4, 6), 16) + offset)
+  return `${r} ${g} ${b}`
+}
+
 export function useTheme() {
   /** Apply CSS variables immediately — no async */
   function applyTheme(theme: Theme) {
@@ -42,6 +59,14 @@ export function useTheme() {
     root.style.setProperty('--color-primary', theme.primary)
     root.style.setProperty('--color-secondary', theme.secondary)
     root.style.setProperty('--color-accent', theme.accent)
+    // RGB channel versions for Tailwind opacity modifiers
+    root.style.setProperty('--color-primary-rgb', hexToRgbChannels(theme.primary))
+    root.style.setProperty('--color-secondary-rgb', hexToRgbChannels(theme.secondary))
+    root.style.setProperty('--color-accent-rgb', hexToRgbChannels(theme.accent))
+    // Secondary shade variants (darker / mid / light)
+    root.style.setProperty('--color-darker-rgb', shadeRgbChannels(theme.secondary, -5))
+    root.style.setProperty('--color-mid-rgb', shadeRgbChannels(theme.secondary, 16))
+    root.style.setProperty('--color-light-rgb', shadeRgbChannels(theme.secondary, 27))
   }
 
   /** Read from localStorage cache (synchronous, for instant paint) */

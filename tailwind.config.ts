@@ -4,7 +4,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: { red:'#FF4655', yellow:'#ECE8D9', dark:'#0F1923', darker:'#0A1016', mid:'#1F2731', light:'#2A3441' }
+        brand: {
+          red:    'rgb(var(--color-primary-rgb) / <alpha-value>)',
+          yellow: 'rgb(var(--color-accent-rgb) / <alpha-value>)',
+          dark:   'rgb(var(--color-secondary-rgb) / <alpha-value>)',
+          darker: 'rgb(var(--color-darker-rgb) / <alpha-value>)',
+          mid:    'rgb(var(--color-mid-rgb) / <alpha-value>)',
+          light:  'rgb(var(--color-light-rgb) / <alpha-value>)',
+        }
       },
     },
   },
