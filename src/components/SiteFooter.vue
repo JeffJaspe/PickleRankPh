@@ -6,9 +6,9 @@
   >
     <div class="mx-auto max-w-[1400px] px-6 py-6 flex flex-wrap items-center justify-center gap-6">
       <template v-for="item in store.items" :key="item.id">
-        <!-- Image-only item -->
+        <!-- Image-only item: image_url is the displayed image, url is the redirect -->
         <a v-if="item.type === 'image'" :href="item.url" target="_blank" rel="noopener">
-          <img :src="item.url" :alt="item.label ?? ''" class="h-10 object-contain opacity-80 hover:opacity-100 transition-opacity" />
+          <img :src="item.image_url ?? item.url" :alt="item.label ?? ''" class="h-10 object-contain opacity-80 hover:opacity-100 transition-opacity" />
         </a>
         <!-- Link item (optional icon + label) -->
         <a

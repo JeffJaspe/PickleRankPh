@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-brand-dark text-brand-yellow">
+  <div class="min-h-screen text-brand-yellow">
 
     <!-- Hero Header -->
     <div class="relative overflow-hidden bg-brand-darker border-b border-brand-mid">

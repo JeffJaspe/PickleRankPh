@@ -34,7 +34,7 @@
         <!-- Preview -->
         <div class="flex-1 min-w-0">
           <template v-if="item.type === 'image'">
-            <img :src="item.url" :alt="item.label ?? ''" class="h-8 object-contain" />
+            <img :src="item.image_url ?? item.url" :alt="item.label ?? ''" class="h-8 object-contain" />
           </template>
           <template v-else>
             <div class="flex items-center gap-2">
@@ -153,8 +153,9 @@
 
         <!-- IMAGE fields -->
         <template v-else>
+          <!-- Image to display -->
           <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Image</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Image to Display</label>
             <div class="space-y-2">
               <label
                 class="inline-flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
@@ -173,14 +174,25 @@
                 />
               </label>
               <p v-if="modal.uploadError" class="text-xs text-red-500">{{ modal.uploadError }}</p>
-              <img v-if="modal.url" :src="modal.url" class="h-14 object-contain rounded border border-gray-200" />
+              <img v-if="modal.image_url" :src="modal.image_url" class="h-14 object-contain rounded border border-gray-200" />
               <input
-                v-model="modal.url"
+                v-model="modal.image_url"
                 type="url"
                 placeholder="or paste image URL…"
                 class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
+          </div>
+
+          <!-- Redirect URL -->
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Redirect URL <span class="text-gray-400 font-normal">(where clicking the image goes)</span></label>
+            <input
+              v-model="modal.url"
+              type="url"
+              placeholder="https://..."
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
           </div>
         </template>
 
@@ -273,7 +285,8 @@ function closeModal() {
 }
 
 async function save() {
-  if (!modal.url.trim()) { modal.error = 'URL is required.'; return }
+  if (modal.type === 'image' && !modal.image_url.trim()) { modal.error = 'An image is required.'; return }
+  if (modal.type === 'link' && !modal.url.trim()) { modal.error = 'URL is required.'; return }
   modal.saving = true
   modal.error = ''
   try {
@@ -281,7 +294,7 @@ async function save() {
       type: modal.type,
       label: modal.type === 'link' ? modal.label || null : null,
       url: modal.url.trim(),
-      image_url: modal.type === 'link' ? modal.image_url.trim() || null : null,
+      image_url: modal.image_url.trim() || null,
       sort_order: modal.sort_order,
     }
     if (modal.isEdit) {
@@ -305,7 +318,7 @@ async function handleImageUpload(event: Event) {
   modal.uploading = true
   try {
     const ext = file.name.split('.').pop() ?? 'png'
-    modal.url = await uploadBrandingFile(file, `footer/img-${Date.now()}.${ext}`)
+    modal.image_url = await uploadBrandingFile(file, `footer/img-${Date.now()}.${ext}`)
   } catch (err: any) {
     modal.uploadError = err?.message ?? 'Upload failed'
   } finally {
