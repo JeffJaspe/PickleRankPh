@@ -142,7 +142,8 @@ export function useTheme() {
       .select('favicon_url, bg_image_url, bg_opacity, bg_size, storage_bucket')
       .eq('id', SITE_SETTINGS_ID)
       .single()
-    if (error || !data) return null
+    if (error) { console.error('[fetchAssets]', error.message); return null }
+    if (!data) return null
     const assets: SiteAssets = {
       favicon_url: data.favicon_url ?? null,
       bg_image_url: data.bg_image_url ?? null,

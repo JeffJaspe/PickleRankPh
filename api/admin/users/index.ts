@@ -3,6 +3,7 @@ import { supabase } from '../../_lib/supabase'
 import { requireAdmin } from '../../_lib/auth'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  try {
   if (req.method === 'OPTIONS') return res.status(200).end()
   if (!(await requireAdmin(req, res))) return
 
@@ -63,4 +64,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   return res.status(405).json({ error: 'Method not allowed' })
+  } catch (e: any) {
+    console.error('[api/admin/users]', e)
+    return res.status(500).json({ error: e?.message ?? 'Internal server error' })
+  }
 }

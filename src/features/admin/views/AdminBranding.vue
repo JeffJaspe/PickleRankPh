@@ -390,8 +390,9 @@ async function saveImageSettings() {
   }
 }
 
-async function handleFaviconUpload(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
+async function handleFaviconUpload(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
   if (!file) return
   faviconError.value = ''
   faviconUploading.value = true
@@ -401,16 +402,17 @@ async function handleFaviconUpload(e: Event) {
     await persistAssets({ favicon_url: url })
     assets.favicon_url = url
     applyFavicon(url)
-  } catch (e: any) {
-    faviconError.value = e?.message ?? 'Upload failed'
+  } catch (err: any) {
+    faviconError.value = err?.message ?? 'Upload failed'
   } finally {
     faviconUploading.value = false
-    ;(e.target as HTMLInputElement).value = ''
+    input.value = ''
   }
 }
 
-async function handleBgUpload(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
+async function handleBgUpload(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
   if (!file) return
   bgError.value = ''
   bgUploading.value = true
@@ -418,11 +420,11 @@ async function handleBgUpload(e: Event) {
     const url = await uploadBrandingFile(file, 'background/bg.png')
     await persistAssets({ bg_image_url: url })
     assets.bg_image_url = url
-  } catch (e: any) {
-    bgError.value = e?.message ?? 'Upload failed'
+  } catch (err: any) {
+    bgError.value = err?.message ?? 'Upload failed'
   } finally {
     bgUploading.value = false
-    ;(e.target as HTMLInputElement).value = ''
+    input.value = ''
   }
 }
 
